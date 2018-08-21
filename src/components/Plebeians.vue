@@ -1,13 +1,14 @@
 <template>
 <v-container>
+  <Header v-on:searchTextUpdate="searchTextUpdate"></Header>
   <v-expansion-panel focusable expand>
-    <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="household in this.directory" :key="household.name">
+    <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.directory" :key="hi">
       <div class="headline" slot="header">
         <v-avatar><v-icon>mdi-home</v-icon></v-avatar>
         {{ household.name }} - <span class="grey--text">{{ household.address1 }} {{ household.address2 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
       </div>
       <v-list dense two-line>
-        <v-list-tile v-for="member in household.members" :key="member.name">
+        <v-list-tile v-for="(member,mi) in household.members" :key="mi">
           <v-list-tile-avatar><img src="https://dummyimage.com/200x200/000000/04ff00.png"/></v-list-tile-avatar>
           <v-list-tile-content>
             <v-list-tile-title>{{ member.name }} ({{ member.position }})</v-list-tile-title>
@@ -19,6 +20,11 @@
     </v-expansion-panel-content>
   </v-expansion-panel>
 
+  <v-footer absolute color="purple lighten-1">
+    <v-layout justify-center row>
+      <span class="title text-lg-center">Massey's Chapel UMC</span>
+    </v-layout>
+  </v-footer>
 </v-container>
 </template>
 
@@ -26,10 +32,14 @@
 // import axios from 'axios'
 import Fuse from 'fuse.js'
 
+import Header from './Header.vue'
+
 export default {
   name: 'Plebeians',
 
-  components: {},
+  components: {
+    Header: Header
+  },
 
   mounted () {
     this.loadDirectory()
@@ -47,6 +57,10 @@ export default {
       }
 
       return bDay
+    },
+
+    searchTextUpdate: function (searchStr) {
+      alert(searchStr)
     },
 
     loadDirectory: function () {
