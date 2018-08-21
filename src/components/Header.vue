@@ -1,6 +1,5 @@
 <template>
-<div>
-  <v-toolbar color="teal">
+  <v-toolbar color="teal" light dense app fixed>
     <v-toolbar-side-icon color="white"><v-icon>mdi-account</v-icon></v-toolbar-side-icon>
     <v-toolbar-title class="white--text">Massey's Chapel UMC - Member Directory</v-toolbar-title>
     <v-flex xs4 offset-xs1>
@@ -18,7 +17,6 @@
       </v-toolbar-items>
     </v-flex>
   </v-toolbar>
-</div>
 </template>
 
 <script>
