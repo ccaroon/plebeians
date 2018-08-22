@@ -1,6 +1,6 @@
 # Plebeians ToDo
 
-* [ ] Header
+* [x] Header
     - Name
     - Search Box
 * [ ] Print View

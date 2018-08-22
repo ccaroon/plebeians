@@ -59,5 +59,14 @@ for i in range(0, HOUSEHOLD_COUNT):
 
     households.append(household)
 
+def cmp(a,b):
+    if a['name'] > b['name']:
+        return 1
+    elif a['name'] == b['name']:
+        return 0
+    else:
+        return -1
+
+households.sort(cmp=cmp)
 
 print json.dumps(households)
