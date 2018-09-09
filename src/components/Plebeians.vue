@@ -13,7 +13,7 @@
         </div>
         <v-list dense three-line>
           <v-list-tile v-for="(member,mi) in household.members" :key="mi">
-            <v-list-tile-avatar><img src="https://dummyimage.com/200x200/000000/04ff00.png"/></v-list-tile-avatar>
+            <v-list-tile-avatar><img :src="'/static/' + member.photo"/></v-list-tile-avatar>
             <v-list-tile-content>
               <v-list-tile-title class="body-2"><strong>{{ member.name }} <span v-if="member.position">({{ member.position }})</span></strong></v-list-tile-title>
               <v-list-tile-sub-title>Birthday: {{ formatBDay(member.birthday) }}</v-list-tile-sub-title>
