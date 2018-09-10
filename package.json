@@ -9,7 +9,7 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
     "build": "node build/build.js",
-    "deploy": "docker run --name plebs-nginx -v /Users/ccaroon/src/github/plebeians/dist:/usr/share/nginx/html:ro -p8080:80 -d nginx"
+    "deploy": "docker run --name plebs-nginx -v /Users/ccaroon/src/github/plebeians/dist:/usr/share/nginx/html:ro -p9090:80 -d nginx"
   },
   "dependencies": {
     "axios": "^0.18.0",

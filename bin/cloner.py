@@ -6,7 +6,7 @@ import string
 
 fake = Faker()
 
-HOUSEHOLD_COUNT = 75
+HOUSEHOLD_COUNT = 25
 
 households = []
 for i in range(0, HOUSEHOLD_COUNT):
@@ -17,6 +17,7 @@ for i in range(0, HOUSEHOLD_COUNT):
         'city': fake.city(),
         'state': fake.state_abbr(),
         'zip': fake.zipcode(),
+        'notes': fake.sentences(nb=3),
         'members': []
     }
 

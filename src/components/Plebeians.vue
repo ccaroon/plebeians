@@ -11,14 +11,21 @@
           <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
           {{ household.name }} - <span class="title grey--text">{{ household.address1 }} {{ household.address2 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
         </div>
-        <v-list dense three-line>
+        <v-list Xdense three-line>
           <v-list-tile v-for="(member,mi) in household.members" :key="mi">
-            <v-list-tile-avatar><img :src="'/static/' + member.photo"/></v-list-tile-avatar>
+            <v-list-tile-avatar><img :src="'/static/' + (member.photo ? member.photo : 'unknown.jpeg')"/></v-list-tile-avatar>
             <v-list-tile-content>
               <v-list-tile-title class="body-2"><strong>{{ member.name }} <span v-if="member.position">({{ member.position }})</span></strong></v-list-tile-title>
               <v-list-tile-sub-title>Birthday: {{ formatBDay(member.birthday) }}</v-list-tile-sub-title>
               <v-list-tile-sub-title>Email: <a v-bind:href="'mailto:' + member.email">{{ member.email }}</a></v-list-tile-sub-title>
               <v-list-tile-sub-title>Phone: {{ member.phone }}</v-list-tile-sub-title>
+            </v-list-tile-content>
+          </v-list-tile>
+          <v-list-tile>
+            <v-list-tile-content>
+              <v-list-tile-title>Notes</v-list-tile-title>
+              <v-list-tile-sub-title v-for="(note,ni) in household.notes" :key="ni" v-html="cleanNote(note)">
+              </v-list-tile-sub-title>
             </v-list-tile-content>
           </v-list-tile>
         </v-list>
@@ -35,11 +42,10 @@
 </template>
 
 <script>
-// import axios from 'axios'
+import axios from 'axios'
 import Fuse from 'fuse.js'
 import Header from './Header.vue'
 
-const people = require('../assets/directory.json')
 const homeIcons = [
   '', 'home', 'home-account', 'home-circle', 'home-heart', 'home-map-marker', 'home-outline',
   'home-variant', 'home-modern', 'castle'
@@ -57,12 +63,15 @@ export default {
 
   mounted () {
     this.loadDirectory()
-    this.initSearch()
   },
 
   computed: {},
 
   methods: {
+
+    cleanNote: function (note) {
+      return note.replace(/\\n/g, '<br>')
+    },
 
     digitalRoot: function (word) {
       var root = 0
@@ -111,7 +120,16 @@ export default {
     },
 
     loadDirectory: function () {
-      this.directory = people
+      var self = this
+
+      axios.get('/static/directory.json')
+        .then(function (response) {
+          self.directory = response.data
+          self.initSearch()
+        })
+        .catch(function (err) {
+          console.log('Error Loading Directory: ' + err)
+        })
     },
 
     initSearch: function () {
