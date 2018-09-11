@@ -19,17 +19,25 @@ def is_end(line):
     return (True if re.search(TAG_END, line) else False)
 
 def process_name(record, data, fh):
-    values = ("%s %s" % (data['first_name'], data['last_name']), data['last_name'])
+    full_name = "%s %s" % (data['first_name'], data['last_name'])
+
+    if data['suffix']:
+        full_name += ", %s" % (data['suffix'])
+
+    values = (full_name, data['last_name'])
     return values
 
 def process_address(record, data, fh):
-    return (data['address'], data['city'], data['state'], data['zip'])
+    address = re.sub("\\\\,", ",", data['address'])
+    return (address, data['city'], data['state'], data['zip'])
 
 def process_email(record, data, fh):
     return data['email_addr']
 
 def process_phone(record, data, fh):
-    return data['phone']
+    number = re.sub("\D", "", data['phone'])
+
+    return number
 
 def process_bday(record, data, fh):
     bday = data['bday'].split('-')
@@ -37,7 +45,7 @@ def process_bday(record, data, fh):
     return (datetime.date.strftime(dt, "%Y-%m-%d"))
 
 def process_note(record, data, fh):
-    return (data['notes'])
+    return (re.sub("\\\\,", ",", data['notes']))
 
 def process_photo(record, data, fh):
     type = data['type'].lower()
@@ -80,27 +88,34 @@ def process_photo(record, data, fh):
 def process_household(record):
 
     # pprint.pprint(record)
-    if not record['household'].get('name') and not record['household'].get('address'):
-        raise Exception("No Household Found.")
+    household_name = record['household'].get('name', None)
+    household_addr = record['household'].get('address', None)
+    if not household_name or not household_addr:
+        raise Exception("No Household Found N[%s] A[%s]" % (household_name, household_addr))
 
-    household_key = "%s%s" % (record['household']['name'], re.sub('\W+', '', record['household']['address']))
+    household_key = "%s%s" % (household_name, re.sub('\W+', '', household_addr))
 
     household = DIRECTORY.get(household_key, None)
 
     if household:
         household['members'].append(record['member'])
-        household['notes'].append(record['household']['notes'])
+        notes = record['household'].get('notes')
+        if notes:
+            household['notes'].append(notes)
     else:
         household = {
-            'name': record['household']['name'],
-            'address1': record['household']['address'],
+            'name': household_name,
+            'address1': household_addr,
             'address2': "",
             'city': record['household']['city'],
             'state': record['household']['state'],
             'zip': record['household']['zip'],
-            'notes': [record['household']['notes']],
+            'notes': [],
             'members': [record['member']]
         }
+        notes = record['household'].get('notes')
+        if notes:
+            household['notes'].append(notes)
 
         DIRECTORY[household_key] = household
 ################################################################################
@@ -108,7 +123,7 @@ TAG_MAP = [
     {
         'fields': ('member.name', 'household.name'),
         # N:LAST;FIRST;;;
-        'token': "^N:(?P<last_name>.*?);(?P<first_name>.*?);(?P<misc>.*)$",
+        'token': "^N:(?P<last_name>.*?);(?P<first_name>.*?);(?P<suffix>.*?);(?P<misc>.*)$",
         'handler': process_name
     },
     {
@@ -168,10 +183,11 @@ def set_field(record, field, value):
 
         record = record[name]
 
-    if record.has_key(leaf):
-        record[leaf] += value
-    else:
-        record[leaf] = value
+    # if record.has_key(leaf):
+    #     record[leaf] += value
+    # else:
+    #     record[leaf] = value
+    record[leaf] = value
 ################################################################################
 # filename = "MCUMC_Directory.vcf"
 # filename = "example.vcf"
@@ -194,7 +210,8 @@ with open(filename, "r") as f:
             try:
                 process_household(record)
             except Exception as e:
-                pass
+                sys.stderr.write(e.message + "\n")
+                continue
         else:
             for tag in TAG_MAP:
                 match = re.search(tag['token'], line)
@@ -214,12 +231,3 @@ def cmp(a,b):
 entries = DIRECTORY.values()
 entries.sort(cmp=cmp)
 print json.dumps(entries)
-
-
-
-
-
-
-
-
-#

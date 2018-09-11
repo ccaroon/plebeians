@@ -11,14 +11,28 @@
           <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
           {{ household.name }} - <span class="title grey--text">{{ household.address1 }} {{ household.address2 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
         </div>
+        <v-layout row>
+          <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">
+            <FamilyMember
+              v-bind:member="member"
+            />
+          </v-flex>
+        </v-layout>
+        <v-card v-if="household.notes.length > 0">
+          <v-card-title class="subheading">Notes</v-card-title>
+          <v-card-text v-html="cleanNote(household.notes.join('\n'))"></v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+  </v-layout>
+
+<!--
         <v-list Xdense three-line>
           <v-list-tile v-for="(member,mi) in household.members" :key="mi">
             <v-list-tile-avatar><img :src="'/static/' + (member.photo ? member.photo : 'unknown.jpeg')"/></v-list-tile-avatar>
             <v-list-tile-content>
               <v-list-tile-title class="body-2"><strong>{{ member.name }} <span v-if="member.position">({{ member.position }})</span></strong></v-list-tile-title>
-              <v-list-tile-sub-title>Birthday: {{ formatBDay(member.birthday) }}</v-list-tile-sub-title>
-              <v-list-tile-sub-title>Email: <a v-bind:href="'mailto:' + member.email">{{ member.email }}</a></v-list-tile-sub-title>
-              <v-list-tile-sub-title>Phone: {{ member.phone }}</v-list-tile-sub-title>
+
             </v-list-tile-content>
           </v-list-tile>
           <v-list-tile>
@@ -29,9 +43,7 @@
             </v-list-tile-content>
           </v-list-tile>
         </v-list>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-layout>
+-->
 
   <!-- <v-layout justify-center row>
     <v-footer fixed color="purple lighten-1">
@@ -44,20 +56,19 @@
 <script>
 import axios from 'axios'
 import Fuse from 'fuse.js'
+import FamilyMember from './FamilyMember.vue'
 import Header from './Header.vue'
 
 const homeIcons = [
   '', 'home', 'home-account', 'home-circle', 'home-heart', 'home-map-marker', 'home-outline',
   'home-variant', 'home-modern', 'castle'
 ]
-const monthAbbr = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]
 
 export default {
   name: 'Plebeians',
 
   components: {
+    FamilyMember: FamilyMember,
     Header: Header
   },
 
@@ -99,16 +110,6 @@ export default {
       var choice = this.digitalRoot(name)
 
       return 'mdi-' + homeIcons[choice]
-    },
-
-    formatBDay: function (dateStr) {
-      var bDay = 'N/A'
-      if (dateStr) {
-        var date = new Date(dateStr)
-        bDay = monthAbbr[date.getMonth()] + ' ' + (date.getDate() + 1)
-      }
-
-      return bDay
     },
 
     searchTextUpdate: function (searchStr) {
