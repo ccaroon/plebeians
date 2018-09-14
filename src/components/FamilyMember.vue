@@ -1,13 +1,15 @@
 <template>
   <v-card>
-      <v-card-media aspect-ratio="4:3">
-        <img :src="'/static/' + (member.photo ? member.photo : 'unknown.jpeg')"/>
+      <v-card-media Xaspect-ratio="4:3">
+        <img width="300" height="300" :src="'/static/' + (member.photo ? member.photo : 'unknown.jpeg')"/>
       </v-card-media>
      <v-card-title class="title">{{ member.name }}</v-card-title>
      <v-card-text>
       Birthday: {{ formatBDay(member.birthday) }}<br>
       Email: <a v-bind:href="'mailto:' + member.email">{{ member.email }}</a><br>
-      Phone: {{ member.phone }}<br>
+      <span v-for="number in formatPhone()" :key="number">
+        Phone: {{ number }}<br>
+      </span>
      </v-card-text>
   </v-card>
 </template>
@@ -23,6 +25,17 @@ export default {
   props: ['member'],
 
   methods: {
+    formatPhone: function () {
+      var data = []
+      if (this.member.phone) {
+        Object.keys(this.member.phone).forEach(key => {
+          data.push(`${this.member.phone[key]} (${key})`)
+        })
+      }
+
+      return (data)
+    },
+
     formatBDay: function (dateStr) {
       var bDay = 'N/A'
       if (dateStr) {

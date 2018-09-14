@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import argparse
 import base64
 import datetime
 import json
 import os.path
 import pprint
 import re
+import shutil
 import sys
 
 DIRECTORY = {}
@@ -24,7 +26,7 @@ def process_name(record, data, fh):
     if data['suffix']:
         full_name += ", %s" % (data['suffix'])
 
-    values = (full_name, data['last_name'])
+    values = (full_name, data['first_name'], data['last_name'])
     return values
 
 def process_address(record, data, fh):
@@ -35,9 +37,17 @@ def process_email(record, data, fh):
     return data['email_addr']
 
 def process_phone(record, data, fh):
-    number = re.sub("\D", "", data['phone'])
+    type = data['type']
+    number = re.sub("\D", "", data['number'])
 
-    return number
+    match = re.search("(?P<exchange>\d\d\d)(?P<prefix>\d\d\d)(?P<last_four>\d\d\d\d)", number)
+    parts = match.groupdict()
+    number = "(%s) %s-%s" % (parts['exchange'], parts['prefix'], parts['last_four'])
+
+    phone = record['member'].get('phone', {})
+    phone[type] = number
+
+    return phone
 
 def process_bday(record, data, fh):
     bday = data['bday'].split('-')
@@ -61,10 +71,21 @@ def process_photo(record, data, fh):
             b64_data += line
 
     img_data = base64.b64decode(b64_data)
-    with open(filename, "w+b") as img:
+    with open("%s/%s" % (OUTPUT_DIR, filename), "w+b") as img:
         img.write(img_data)
 
     return (filename)
+
+def process_alt_photo(record):
+    photo_path = "%s/%s, %s.jpg" % (PHOTO_DIR, record['household']['name'], record['_hidden']['first_name'])
+
+    if os.path.isfile(photo_path):
+        # print "Found Alt Photo: %s" % (photo_path)
+        filename = record['member']['name'].lower()
+        filename = re.sub('\W','-', filename) + ".jpeg"
+        shutil.copy(photo_path, "%s/%s" % (OUTPUT_DIR, filename))
+
+        record['member']['photo'] = filename
 
 #################### Example Household #########################################
 # {
@@ -93,7 +114,8 @@ def process_household(record):
     if not household_name or not household_addr:
         raise Exception("No Household Found N[%s] A[%s]" % (household_name, household_addr))
 
-    household_key = "%s%s" % (household_name, re.sub('\W+', '', household_addr))
+    household_key = re.sub('\W+', '', household_addr)
+    # household_key = "%s%s" % (household_name, re.sub('\W+', '', household_addr))
 
     household = DIRECTORY.get(household_key, None)
 
@@ -121,7 +143,7 @@ def process_household(record):
 ################################################################################
 TAG_MAP = [
     {
-        'fields': ('member.name', 'household.name'),
+        'fields': ('member.name', '_hidden.first_name', 'household.name'),
         # N:LAST;FIRST;;;
         'token': "^N:(?P<last_name>.*?);(?P<first_name>.*?);(?P<suffix>.*?);(?P<misc>.*)$",
         'handler': process_name
@@ -135,12 +157,12 @@ TAG_MAP = [
     {
         'fields': 'member.phone',
         # TEL;type=CELL;type=VOICE;type=pref:919-641-6341
-        'token': "^TEL;.*:(?P<phone>.*)$",
+        'token': "^TEL;type=(?P<type>.*?);.*:(?P<number>.*)$",
         'handler': process_phone
     },
     {
         'fields': ('household.address', 'household.city', 'household.state', 'household.zip'),
-        # ADR;type=HOME;type=pref:;;403 Shetland Rd;Rougemont;NC;27572;
+        # ADR;type=HOME;type=pref:;;4003 Sheetland Rd;Redgemont;NC;27572;
         'token': "ADR;.*:;;(?P<address>.*?);(?P<city>.*?);(?P<state>.*?);(?P<zip>.*);",
         'handler': process_address
     },
@@ -158,7 +180,7 @@ TAG_MAP = [
     },
     {
         'fields': 'household.notes',
-        # NOTE:Birthday: \nKen's birthday 10/6\nRiley's birthday 1/23\nJamie's birthday 9/14\n
+        # NOTE:Birthday: \nBob's birthday 10/6\nFred's birthday 1/23\nJamie's birthday 9/14\n
         'token': "^NOTE:(?P<notes>.*)",
         'handler': process_note
     },
@@ -189,16 +211,30 @@ def set_field(record, field, value):
     #     record[leaf] = value
     record[leaf] = value
 ################################################################################
-# filename = "MCUMC_Directory.vcf"
-# filename = "example.vcf"
+parser = argparse.ArgumentParser(
+    description="Convert VCF (V-Card) format data for use with Plebeians."
+)
 
-if len(sys.argv) < 2:
-    raise Exception("Usage: %s <filename.vcf>" % sys.argv[0])
-else:
-    filename = sys.argv.pop(1)
+parser.add_argument("vcard_file",
+    help="VCard Input File"
+)
+parser.add_argument("output_dir",
+    help="Directory to write output files (JSON and Photos)"
+)
+parser.add_argument("--alt-photo-dir",
+    help="Look for an alternate photo in this directory."
+)
 
+args = parser.parse_args()
+
+filename   = args.vcard_file
+OUTPUT_DIR = args.output_dir
+PHOTO_DIR  = args.alt_photo_dir
+
+# if not filename or not output_dir:
+    # raise Exception("Usage: %s <filename.vcf> <alt_photo_dir>" % sys.argv[0])
+################################################################################
 with open(filename, "r") as f:
-
     record = {}
     line = "nothing"
     while (line):
@@ -208,6 +244,9 @@ with open(filename, "r") as f:
             record = {}
         elif (is_end(line)):
             try:
+                if PHOTO_DIR:
+                    process_alt_photo(record)
+
                 process_household(record)
             except Exception as e:
                 sys.stderr.write(e.message + "\n")
@@ -230,4 +269,6 @@ def cmp(a,b):
 
 entries = DIRECTORY.values()
 entries.sort(cmp=cmp)
-print json.dumps(entries)
+
+with open("%s/directory.json" % OUTPUT_DIR, "w") as fp:
+    json.dump(entries, fp)
