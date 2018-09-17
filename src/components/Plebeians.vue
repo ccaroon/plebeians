@@ -1,29 +1,31 @@
 <template>
 <v-container>
   <v-layout row>
-    <Header v-on:searchTextUpdate="searchTextUpdate"></Header>
+    <v-flex><Header v-on:searchTextUpdate="searchTextUpdate"></Header></v-flex>
   </v-layout>
 
   <v-layout row>
-    <v-expansion-panel focusable expand>
-      <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.displayData" :key="hi">
-        <div class="headline" slot="header">
-          <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
-          {{ household.name }} - <span class="title grey--text">{{ household.address1 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
-        </div>
-        <v-layout row>
-          <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">
-            <FamilyMember
-              v-bind:member="member"
-            />
-          </v-flex>
-        </v-layout>
-        <v-card v-if="household.notes.length > 0">
-          <v-card-title class="subheading">Notes</v-card-title>
-          <v-card-text v-html="cleanNote(household.notes.join('\n'))"></v-card-text>
-        </v-card>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
+    <v-flex xs12>
+      <v-expansion-panel focusable expand>
+        <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.displayData" :key="hi">
+          <div class="headline" slot="header">
+            <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
+            {{ household.name }} - <span class="title grey--text">{{ household.address1 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
+          </div>
+          <v-layout row>
+            <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">
+              <FamilyMember
+                v-bind:member="member"
+              />
+            </v-flex>
+          </v-layout>
+          <v-card v-if="household.notes.length > 0">
+            <v-card-title class="subheading">Notes</v-card-title>
+            <v-card-text v-html="cleanNote(household.notes.join('\n'))"></v-card-text>
+          </v-card>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-flex>
   </v-layout>
 
 <!--
