@@ -11,6 +11,11 @@
         Phone: {{ number }}<br>
       </span>
      </v-card-text>
+     <v-card-text>
+         <v-chip outline text-color="black" small v-for="(rel, ri) in member.relationships" :key="ri">
+             {{ rel }}
+         </v-chip>
+     </v-card-text>
   </v-card>
 </template>
 

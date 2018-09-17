@@ -1,0 +1,3 @@
+*.jpeg
+!unknown.jpeg
+directory.json

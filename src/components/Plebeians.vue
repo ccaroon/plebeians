@@ -9,7 +9,7 @@
       <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.displayData" :key="hi">
         <div class="headline" slot="header">
           <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
-          {{ household.name }} - <span class="title grey--text">{{ household.address1 }} {{ household.address2 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
+          {{ household.name }} - <span class="title grey--text">{{ household.address1 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
         </div>
         <v-layout row>
           <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">

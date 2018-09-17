@@ -31,6 +31,7 @@ def process_name(record, data, fh):
 
 def process_address(record, data, fh):
     address = re.sub("\\\\,", ",", data['address'])
+    address = re.sub("\\\\n", "", data['address'])
     return (address, data['city'], data['state'], data['zip'])
 
 def process_email(record, data, fh):
@@ -57,6 +58,27 @@ def process_bday(record, data, fh):
 def process_note(record, data, fh):
     return (re.sub("\\\\,", ",", data['notes']))
 
+def process_relationships(record, data, fh):
+    rel_name = data['name']
+
+    line = fh.readline().rstrip("\n\r")
+
+    # item2.X-ABLabel:_$!<Spouse>!$_
+    match = re.search("<(?P<rel_type>.*)>", line)
+    if not match:
+        # item3.X-ABLabel:mother-in-law
+        match = re.search("X-ABLabel:(?P<rel_type>.*)", line)
+
+    d2 = match.groupdict()
+    rel_type = d2['rel_type'].title()
+    rels = record['member'].get('relationships', [])
+
+    entry = "%s: %s" % (rel_type, rel_name)
+    if not entry in rels:
+        rels.append(entry)
+
+    return(rels)
+
 def process_photo(record, data, fh):
     type = data['type'].lower()
     filename = record['member']['name'].lower()
@@ -64,8 +86,10 @@ def process_photo(record, data, fh):
     b64_data = data['data_start']
 
     while True:
-        line = f.readline().rstrip("\n\r")
+        line = fh.readline().rstrip("\n\r")
         if not re.search("^\s+", line):
+            # rewind file to "put" line back
+            fh.seek(len(line) * -1, 1)
             break;
         else:
             b64_data += line
@@ -106,6 +130,7 @@ def process_alt_photo(record):
 #     ]
 # }
 ################################################################################
+# TODO: moved phone and relationships aggregation to HERE
 def process_household(record):
 
     # pprint.pprint(record)
@@ -120,6 +145,8 @@ def process_household(record):
     household = DIRECTORY.get(household_key, None)
 
     if household:
+        if record['household']['name'] != household['name']:
+            household['name'] += "/%s" % (record['household']['name'])
         household['members'].append(record['member'])
         notes = record['household'].get('notes')
         if notes:
@@ -128,7 +155,7 @@ def process_household(record):
         household = {
             'name': household_name,
             'address1': household_addr,
-            'address2': "",
+            # 'address2': "",
             'city': record['household']['city'],
             'state': record['household']['state'],
             'zip': record['household']['zip'],
@@ -163,7 +190,7 @@ TAG_MAP = [
     {
         'fields': ('household.address', 'household.city', 'household.state', 'household.zip'),
         # ADR;type=HOME;type=pref:;;4003 Sheetland Rd;Redgemont;NC;27572;
-        'token': "ADR;.*:;;(?P<address>.*?);(?P<city>.*?);(?P<state>.*?);(?P<zip>.*);",
+        'token': "ADR;type=HOME;.*:;;(?P<address>.*?);(?P<city>.*?);(?P<state>.*?);(?P<zip>.*);",
         'handler': process_address
     },
     {
@@ -179,11 +206,17 @@ TAG_MAP = [
         'handler': process_photo
     },
     {
-        'fields': 'household.notes',
-        # NOTE:Birthday: \nBob's birthday 10/6\nFred's birthday 1/23\nJamie's birthday 9/14\n
-        'token': "^NOTE:(?P<notes>.*)",
-        'handler': process_note
+        'fields': 'member.relationships',
+        # item2.X-ABRELATEDNAMES;type=pref:Ken
+        'token': "X-ABRELATEDNAMES;?(.*):(?P<name>.*)",
+        'handler': process_relationships
     },
+    # {
+    #     'fields': 'household.notes',
+    #     # NOTE:Birthday: \nBob's birthday 10/6\nFred's birthday 1/23\nJamie's birthday 9/14\n
+    #     'token': "^NOTE:(?P<notes>.*)",
+    #     'handler': process_note
+    # },
 ]
 ################################################################################
 def set_fields(record, fields, value):
