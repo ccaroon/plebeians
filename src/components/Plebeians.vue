@@ -6,7 +6,7 @@
 
   <v-layout row>
     <v-flex xs12>
-      <v-expansion-panel focusable expand>
+      <v-expansion-panel expand v-model="panelControl">
         <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.displayData" :key="hi">
           <div class="headline" slot="header">
             <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
@@ -109,7 +109,7 @@ export default {
 
     pickAHome: function (name) {
       // var choice = Math.floor(Math.random() * Math.floor(homeIcons.length))
-      var choice = this.digitalRoot(name)
+      var choice = 7 // this.digitalRoot(name)
 
       return 'mdi-' + homeIcons[choice]
     },
@@ -118,6 +118,8 @@ export default {
       if (searchStr) {
         this.displayData = this.fuse.search(searchStr)
       } else {
+        // Close all open panels
+        this.panelControl = []
         this.displayData = this.directory
       }
     },
@@ -125,7 +127,7 @@ export default {
     loadDirectory: function () {
       var self = this
 
-      axios.get('/static/directory.json')
+      axios.get('/static/mcumc/directory.json')
         .then(function (response) {
           self.directory = response.data
           self.initSearch()
@@ -149,7 +151,8 @@ export default {
     return {
       fuse: null,
       directory: [],
-      displayData: []
+      displayData: [],
+      panelControl: []
     }
   }
 }

@@ -1,7 +1,12 @@
 <template>
-  <v-toolbar color="teal" light dense app fixed>
-    <v-toolbar-side-icon color="white"><v-icon>mdi-account</v-icon></v-toolbar-side-icon>
-    <v-toolbar-title class="white--text">Massey's Chapel UMC - Member Directory</v-toolbar-title>
+  <v-toolbar style="background-color:#67E4BE" light dense app fixed>
+    <v-btn fab small title="Home" href="http://www.masseyschapelumc.org">
+      <v-icon color="">mdi-church</v-icon>
+    </v-btn>
+    <v-btn fab small title="Member's Area" href="http://www.masseyschapelumc.org/mcumc-members.html">
+      <v-icon color="">mdi-folder-lock</v-icon>
+    </v-btn>
+    <v-toolbar-title class="black--text">Massey's Chapel UMC - Member Directory</v-toolbar-title>
     <v-flex xs4 offset-xs1>
       <v-toolbar-items>
         <v-icon>mdi-magnify</v-icon>
@@ -31,6 +36,10 @@ export default {
 
     execSearch: function () {
       this.$emit('searchTextUpdate', this.searchText)
+    },
+
+    goToUrl: function (url) {
+      location.href = url
     }
   },
 

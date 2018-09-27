@@ -1,3 +1,2 @@
 *.jpeg
-!unknown.jpeg
-directory.json
+*.json
