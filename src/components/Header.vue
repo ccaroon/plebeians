@@ -6,6 +6,9 @@
     <v-btn fab small title="Member's Area" href="http://www.masseyschapelumc.org/mcumc-members.html">
       <v-icon color="">mdi-folder-lock</v-icon>
     </v-btn>
+    <v-btn fab small title="Directory Feedback" href="mailto:craig@caroon.org?subject=MCUMC Directory Feedback">
+      <v-icon color="">mdi-message-alert</v-icon>
+    </v-btn>
     <v-toolbar-title class="black--text">Massey's Chapel UMC - Member Directory</v-toolbar-title>
     <v-flex xs4 offset-xs1>
       <v-toolbar-items>
