@@ -6,21 +6,20 @@ import string
 
 fake = Faker()
 
-HOUSEHOLD_COUNT = 25
+HOUSEHOLD_COUNT = 10
 
 households = []
 for i in range(0, HOUSEHOLD_COUNT):
     household = {
         'name': fake.last_name(),
         'address1': fake.street_address(),
-        'address2': "",
+        # 'address2': "",
         'city': fake.city(),
         'state': fake.state_abbr(),
         'zip': fake.zipcode(),
         'notes': fake.sentences(nb=3),
         'members': []
     }
-
 
     member_count = random.randint(1,5)
     for num in range(0, member_count):
@@ -51,11 +50,12 @@ for i in range(0, HOUSEHOLD_COUNT):
 
         person = {
             'name': name,
-            'phone': fake.numerify(text="(###) ###-####"),
+            'phone': {'HOME': fake.numerify(text="(###) ###-####")},
             'email': string.replace(name, ' ', '-') + "@" + fake.free_email_domain(),
             'birthday': fake.date(pattern="%Y-%m-%d"),
             'position': position
         }
+        # TODO: ADD member.relationships
         household['members'].append(person)
 
     households.append(household)

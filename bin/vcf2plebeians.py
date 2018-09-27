@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import argparse
 import base64
 import datetime
 import json
 import os.path
 import pprint
 import re
+import shutil
 import sys
 
 DIRECTORY = {}
@@ -19,17 +21,34 @@ def is_end(line):
     return (True if re.search(TAG_END, line) else False)
 
 def process_name(record, data, fh):
-    values = ("%s %s" % (data['first_name'], data['last_name']), data['last_name'])
+    full_name = "%s %s" % (data['first_name'], data['last_name'])
+
+    if data['suffix']:
+        full_name += ", %s" % (data['suffix'])
+
+    values = (full_name, data['first_name'], data['last_name'])
     return values
 
 def process_address(record, data, fh):
-    return (data['address'], data['city'], data['state'], data['zip'])
+    address = re.sub("\\\\,", ",", data['address'])
+    address = re.sub("\\\\n", "", data['address'])
+    return (address, data['city'], data['state'], data['zip'])
 
 def process_email(record, data, fh):
     return data['email_addr']
 
 def process_phone(record, data, fh):
-    return data['phone']
+    type = data['type']
+    number = re.sub("\D", "", data['number'])
+
+    match = re.search("(?P<exchange>\d\d\d)(?P<prefix>\d\d\d)(?P<last_four>\d\d\d\d)", number)
+    parts = match.groupdict()
+    number = "(%s) %s-%s" % (parts['exchange'], parts['prefix'], parts['last_four'])
+
+    phone = record['member'].get('phone', {})
+    phone[type] = number
+
+    return phone
 
 def process_bday(record, data, fh):
     bday = data['bday'].split('-')
@@ -37,7 +56,28 @@ def process_bday(record, data, fh):
     return (datetime.date.strftime(dt, "%Y-%m-%d"))
 
 def process_note(record, data, fh):
-    return (data['notes'])
+    return (re.sub("\\\\,", ",", data['notes']))
+
+def process_relationships(record, data, fh):
+    rel_name = data['name']
+
+    line = fh.readline().rstrip("\n\r")
+
+    # item2.X-ABLabel:_$!<Spouse>!$_
+    match = re.search("<(?P<rel_type>.*)>", line)
+    if not match:
+        # item3.X-ABLabel:mother-in-law
+        match = re.search("X-ABLabel:(?P<rel_type>.*)", line)
+
+    d2 = match.groupdict()
+    rel_type = d2['rel_type'].title()
+    rels = record['member'].get('relationships', [])
+
+    entry = "%s: %s" % (rel_type, rel_name)
+    if not entry in rels:
+        rels.append(entry)
+
+    return(rels)
 
 def process_photo(record, data, fh):
     type = data['type'].lower()
@@ -46,17 +86,30 @@ def process_photo(record, data, fh):
     b64_data = data['data_start']
 
     while True:
-        line = f.readline().rstrip("\n\r")
+        line = fh.readline().rstrip("\n\r")
         if not re.search("^\s+", line):
+            # rewind file to "put" line back
+            fh.seek(len(line) * -1, 1)
             break;
         else:
             b64_data += line
 
     img_data = base64.b64decode(b64_data)
-    with open(filename, "w+b") as img:
+    with open("%s/%s" % (OUTPUT_DIR, filename), "w+b") as img:
         img.write(img_data)
 
     return (filename)
+
+def process_alt_photo(record):
+    photo_path = "%s/%s, %s.jpg" % (PHOTO_DIR, record['household']['name'], record['_hidden']['first_name'])
+
+    if os.path.isfile(photo_path):
+        # print "Found Alt Photo: %s" % (photo_path)
+        filename = record['member']['name'].lower()
+        filename = re.sub('\W','-', filename) + ".jpeg"
+        shutil.copy(photo_path, "%s/%s" % (OUTPUT_DIR, filename))
+
+        record['member']['photo'] = filename
 
 #################### Example Household #########################################
 # {
@@ -77,38 +130,49 @@ def process_photo(record, data, fh):
 #     ]
 # }
 ################################################################################
+# TODO: moved phone and relationships aggregation to HERE
 def process_household(record):
 
     # pprint.pprint(record)
-    if not record['household'].get('name') and not record['household'].get('address'):
-        raise Exception("No Household Found.")
+    household_name = record['household'].get('name', None)
+    household_addr = record['household'].get('address', None)
+    if not household_name or not household_addr:
+        raise Exception("No Household Found N[%s] A[%s]" % (household_name, household_addr))
 
-    household_key = "%s%s" % (record['household']['name'], re.sub('\W+', '', record['household']['address']))
+    household_key = re.sub('\W+', '', household_addr)
+    # household_key = "%s%s" % (household_name, re.sub('\W+', '', household_addr))
 
     household = DIRECTORY.get(household_key, None)
 
     if household:
+        if record['household']['name'] != household['name']:
+            household['name'] += "/%s" % (record['household']['name'])
         household['members'].append(record['member'])
-        household['notes'].append(record['household']['notes'])
+        notes = record['household'].get('notes')
+        if notes:
+            household['notes'].append(notes)
     else:
         household = {
-            'name': record['household']['name'],
-            'address1': record['household']['address'],
-            'address2': "",
+            'name': household_name,
+            'address1': household_addr,
+            # 'address2': "",
             'city': record['household']['city'],
             'state': record['household']['state'],
             'zip': record['household']['zip'],
-            'notes': [record['household']['notes']],
+            'notes': [],
             'members': [record['member']]
         }
+        notes = record['household'].get('notes')
+        if notes:
+            household['notes'].append(notes)
 
         DIRECTORY[household_key] = household
 ################################################################################
 TAG_MAP = [
     {
-        'fields': ('member.name', 'household.name'),
+        'fields': ('member.name', '_hidden.first_name', 'household.name'),
         # N:LAST;FIRST;;;
-        'token': "^N:(?P<last_name>.*?);(?P<first_name>.*?);(?P<misc>.*)$",
+        'token': "^N:(?P<last_name>.*?);(?P<first_name>.*?);(?P<suffix>.*?);(?P<misc>.*)$",
         'handler': process_name
     },
     {
@@ -120,13 +184,13 @@ TAG_MAP = [
     {
         'fields': 'member.phone',
         # TEL;type=CELL;type=VOICE;type=pref:919-641-6341
-        'token': "^TEL;.*:(?P<phone>.*)$",
+        'token': "^TEL;type=(?P<type>.*?);.*:(?P<number>.*)$",
         'handler': process_phone
     },
     {
         'fields': ('household.address', 'household.city', 'household.state', 'household.zip'),
-        # ADR;type=HOME;type=pref:;;403 Shetland Rd;Rougemont;NC;27572;
-        'token': "ADR;.*:;;(?P<address>.*?);(?P<city>.*?);(?P<state>.*?);(?P<zip>.*);",
+        # ADR;type=HOME;type=pref:;;4003 Sheetland Rd;Redgemont;NC;27572;
+        'token': "ADR;type=HOME;.*:;;(?P<address>.*?);(?P<city>.*?);(?P<state>.*?);(?P<zip>.*);",
         'handler': process_address
     },
     {
@@ -142,11 +206,17 @@ TAG_MAP = [
         'handler': process_photo
     },
     {
-        'fields': 'household.notes',
-        # NOTE:Birthday: \nKen's birthday 10/6\nRiley's birthday 1/23\nJamie's birthday 9/14\n
-        'token': "^NOTE:(?P<notes>.*)",
-        'handler': process_note
+        'fields': 'member.relationships',
+        # item2.X-ABRELATEDNAMES;type=pref:Ken
+        'token': "X-ABRELATEDNAMES;?(.*):(?P<name>.*)",
+        'handler': process_relationships
     },
+    # {
+    #     'fields': 'household.notes',
+    #     # NOTE:Birthday: \nBob's birthday 10/6\nFred's birthday 1/23\nJamie's birthday 9/14\n
+    #     'token': "^NOTE:(?P<notes>.*)",
+    #     'handler': process_note
+    # },
 ]
 ################################################################################
 def set_fields(record, fields, value):
@@ -168,21 +238,36 @@ def set_field(record, field, value):
 
         record = record[name]
 
-    if record.has_key(leaf):
-        record[leaf] += value
-    else:
-        record[leaf] = value
+    # if record.has_key(leaf):
+    #     record[leaf] += value
+    # else:
+    #     record[leaf] = value
+    record[leaf] = value
 ################################################################################
-# filename = "MCUMC_Directory.vcf"
-# filename = "example.vcf"
+parser = argparse.ArgumentParser(
+    description="Convert VCF (V-Card) format data for use with Plebeians."
+)
 
-if len(sys.argv) < 2:
-    raise Exception("Usage: %s <filename.vcf>" % sys.argv[0])
-else:
-    filename = sys.argv.pop(1)
+parser.add_argument("vcard_file",
+    help="VCard Input File"
+)
+parser.add_argument("output_dir",
+    help="Directory to write output files (JSON and Photos)"
+)
+parser.add_argument("--alt-photo-dir",
+    help="Look for an alternate photo in this directory."
+)
 
+args = parser.parse_args()
+
+filename   = args.vcard_file
+OUTPUT_DIR = args.output_dir
+PHOTO_DIR  = args.alt_photo_dir
+
+# if not filename or not output_dir:
+    # raise Exception("Usage: %s <filename.vcf> <alt_photo_dir>" % sys.argv[0])
+################################################################################
 with open(filename, "r") as f:
-
     record = {}
     line = "nothing"
     while (line):
@@ -192,9 +277,13 @@ with open(filename, "r") as f:
             record = {}
         elif (is_end(line)):
             try:
+                if PHOTO_DIR:
+                    process_alt_photo(record)
+
                 process_household(record)
             except Exception as e:
-                pass
+                sys.stderr.write(e.message + "\n")
+                continue
         else:
             for tag in TAG_MAP:
                 match = re.search(tag['token'], line)
@@ -213,13 +302,6 @@ def cmp(a,b):
 
 entries = DIRECTORY.values()
 entries.sort(cmp=cmp)
-print json.dumps(entries)
 
-
-
-
-
-
-
-
-#
+with open("%s/directory.json" % OUTPUT_DIR, "w") as fp:
+    json.dump(entries, fp)
