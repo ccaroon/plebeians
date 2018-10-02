@@ -1,15 +1,15 @@
 <template>
   <v-toolbar style="background-color:#67E4BE" light dense app fixed>
-    <v-btn fab small title="Home" href="http://www.masseyschapelumc.org">
+    <v-btn fab small title="Home" :href="$config.urls.home">
       <v-icon color="">mdi-church</v-icon>
     </v-btn>
-    <v-btn fab small title="Member's Area" href="http://www.masseyschapelumc.org/mcumc-members.html">
+    <v-btn fab small title="Member's Area" :href="$config.urls.membersArea">
       <v-icon color="">mdi-folder-lock</v-icon>
     </v-btn>
-    <v-btn fab small title="Directory Feedback" href="mailto:craig@caroon.org?subject=MCUMC Directory Feedback">
+    <v-btn fab small title="Directory Feedback" :href="'mailto:'+$config.feedbackEmail+'?subject='+$config.organization.abbrev+' Directory Feedback'">
       <v-icon color="">mdi-message-alert</v-icon>
     </v-btn>
-    <v-toolbar-title class="black--text">Massey's Chapel UMC - Member Directory</v-toolbar-title>
+    <v-toolbar-title class="black--text">{{ $config.organization.name }} - Member Directory</v-toolbar-title>
     <v-flex xs4 offset-xs1>
       <v-toolbar-items>
         <v-icon>mdi-magnify</v-icon>

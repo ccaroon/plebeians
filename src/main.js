@@ -12,6 +12,13 @@ Vue.config.productionTip = false
 
 Vue.use(Vuetify)
 
+const vueConfig = require('vue-config')
+const defConfig = require('./config/defaults.js')
+const envConfig = require(`./config/${process.env.NODE_ENV}`)
+const config = Object.assign({}, defConfig, envConfig)
+config.compile()
+Vue.use(vueConfig, config)
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
