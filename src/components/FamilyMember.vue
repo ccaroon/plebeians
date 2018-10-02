@@ -1,11 +1,11 @@
 <template>
   <v-card>
     <v-card-media Xaspect-ratio="4:3">
-      <img width="300" height="300" :src="'/static/mcumc/photos/' + (member.photo ? member.photo : 'unknown.jpeg')"/>
+      <img width="300" height="300" :src="$config.dataPrefix+'/photos/' + (member.photo ? member.photo : 'unknown.jpeg')"/>
     </v-card-media>
     <v-card-title>
       <span class="title">{{ member.name }}</span>
-      <v-btn flat icon color="grey" title="Submit Data Correction" :href="'mailto:craig@caroon.org?subject=MCUMC Directory - Data Correction: ' + member.name">
+      <v-btn flat icon color="grey" title="Submit Data Correction" :href="'mailto:'+$config.feedbackEmail+'?subject='+$config.organization.abbrev+' Directory - Data Correction: ' + member.name">
         <v-icon>mdi-message-alert-outline</v-icon>
       </v-btn>
     </v-card-title>

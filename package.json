@@ -9,13 +9,14 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
     "build": "node build/build.js",
-    "deploy": "docker run --name plebs-nginx -v /Users/ccaroon/src/github/plebeians/dist:/usr/share/nginx/html:ro -p9090:80 -d nginx"
+    "deploy": "docker run --name plebs-nginx -v /Users/ccaroon/src/github/plebeians/dist:/usr/share/nginx/html/plebians:ro -p9090:80 -d nginx"
   },
   "dependencies": {
+    "@mdi/font": "^2.2.43",
     "axios": "^0.18.0",
     "fuse.js": "^3.2.1",
-    "@mdi/font": "^2.2.43",
     "vue": "^2.5.2",
+    "vue-config": "^1.0.0",
     "vue-router": "^3.0.1",
     "vuetify": "^1.1.13"
   },

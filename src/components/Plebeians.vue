@@ -28,25 +28,6 @@
     </v-flex>
   </v-layout>
 
-<!--
-        <v-list Xdense three-line>
-          <v-list-tile v-for="(member,mi) in household.members" :key="mi">
-            <v-list-tile-avatar><img :src="'/static/' + (member.photo ? member.photo : 'unknown.jpeg')"/></v-list-tile-avatar>
-            <v-list-tile-content>
-              <v-list-tile-title class="body-2"><strong>{{ member.name }} <span v-if="member.position">({{ member.position }})</span></strong></v-list-tile-title>
-
-            </v-list-tile-content>
-          </v-list-tile>
-          <v-list-tile>
-            <v-list-tile-content>
-              <v-list-tile-title>Notes</v-list-tile-title>
-              <v-list-tile-sub-title v-for="(note,ni) in household.notes" :key="ni" v-html="cleanNote(note)">
-              </v-list-tile-sub-title>
-            </v-list-tile-content>
-          </v-list-tile>
-        </v-list>
--->
-
   <!-- <v-layout justify-center row>
     <v-footer fixed color="purple lighten-1">
         <span class="title text-lg-center">Massey's Chapel UMC</span>
@@ -127,7 +108,7 @@ export default {
     loadDirectory: function () {
       var self = this
 
-      axios.get('/static/mcumc/directory.json')
+      axios.get(this.$config.dataPrefix + '/directory.json')
         .then(function (response) {
           self.directory = response.data
           self.initSearch()
