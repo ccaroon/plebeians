@@ -34,18 +34,35 @@ class Directory:
     def render(self):
         side_it = itertools.cycle((Directory.SIDE_LEFT, Directory.SIDE_RIGHT))
 
+        fi = 0
         num_members = len(self.__member_data)
-        num_members = 10
-        for i in xrange(0, num_members, 2):
-        # for family in self.__member_data:
+        while fi < num_members:
             # Vertical Line Down Center
             self.__pdf.setStrokeColorRGB(0,0,0)
             self.__pdf.line(5.5*inch,0*inch, 5.5*inch, 8.5*inch)
 
             # Render the Family
-            self.render_family(self.__member_data[i], side_it.next())
-            if i+1 < num_members:
-                self.render_family(self.__member_data[i+1], side_it.next())
+            family1 = self.__member_data[fi]
+            fi += 1
+            family1_args = {}
+            family2_args = {}
+            if len(family1['members']) > 3:
+                family1_args = {
+                    'm_start': 0,
+                    'm_end': 3
+                }
+                family2 = family1
+                family2_args = {
+                    'm_start': 4,
+                    'm_end': 6,
+                    'family_cont': True
+                }
+            else:
+                family2 = self.__member_data[fi]
+                fi += 1
+
+            self.render_family(family1, side_it.next(), **family1_args)
+            self.render_family(family2, side_it.next(), **family2_args)
 
             # End the Page
             self.__pdf.showPage()
@@ -53,7 +70,7 @@ class Directory:
         # Save PDF
         self.__pdf.save()
 
-    def render_family(self, family, side):
+    def render_family(self, family, side, **kwargs):
         left_margin  = 0
         right_margin = 0
         if side == Directory.SIDE_LEFT:
@@ -65,21 +82,22 @@ class Directory:
         else:
             raise ValueError("Invalid value [%s] for 'side' parameter." % (side))
 
-        # Family Name - Left
+        # Family Name
         self.__pdf.setFont(Directory.FONT, 18)
         draw_pos = {'x': left_margin, 'y': 8.125*inch}
         self.__pdf.drawString(draw_pos['x'], draw_pos['y'], family['name'])
 
-        # Family Address - Left
-        self.__pdf.setFont(Directory.FONT, 16)
-        draw_pos['y'] -= .20*inch
-        addr = self.__pdf.beginText(draw_pos['x'], draw_pos['y'])
-        addr.setLeading(15)
-        addr.textLine(family['address1'])
-        addr.textLine("%s, %s %s" % (family['city'], family['state'], family['zip']))
-        self.__pdf.drawText(addr)
+        # Family Address
+        if not kwargs.get('family_cont', False):
+            self.__pdf.setFont(Directory.FONT, 16)
+            draw_pos['y'] -= .20*inch
+            addr = self.__pdf.beginText(draw_pos['x'], draw_pos['y'])
+            addr.setLeading(15)
+            addr.textLine(family['address1'])
+            addr.textLine("%s, %s %s" % (family['city'], family['state'], family['zip']))
+            self.__pdf.drawText(addr)
 
-        # Family Name/Address Divider - Left
+        # Family Name/Address Divider
         self.__pdf.setStrokeColorRGB(.5, .5, .5)
         self.__pdf.line(left_margin, 7.5*inch, right_margin-(0.25*inch), 7.5*inch)
 
@@ -87,8 +105,20 @@ class Directory:
         photo_dir = "%s/photos" % (self.__data_path)
         pos_x = left_margin
         pos_y = 5.25*inch
-        for person in family['members']:
-            print "%s - %s" % (person['name'], pos_x)
+
+        m_start = kwargs.get('m_start', 0)
+        m_end   = kwargs.get('m_end', len(family['members']))
+        members = family['members'][m_start:m_end+1]
+
+        for person in members:
+            self.render_person(person, pos_x, pos_y, photo_dir)
+            pos_x += 2.70*inch
+            if pos_x >= right_margin:
+                pos_x = left_margin
+                pos_y = 1.90*inch
+
+    def render_person(self, person, pos_x, pos_y, photo_dir):
+            # print "%s - %s" % (person['name'], pos_x)
             # Photo
             photo = "%s/%s" % (photo_dir, person.get('photo', 'unknown.jpeg'))
             self.__pdf.drawImage(photo, pos_x, pos_y, width=150,height=150)
@@ -126,11 +156,6 @@ class Directory:
             #     info.textLine(rel)
 
             self.__pdf.drawText(info)
-
-            pos_x += 2.70*inch
-            if pos_x >= right_margin:
-                pos_x = left_margin
-                pos_y = 1.90*inch
 
 # ------------------------------------------------------------------------------
 def main():
