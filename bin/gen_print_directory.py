@@ -11,6 +11,7 @@ import sys
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import cm, mm, inch, pica
+from reportlab.lib.colors import black, white, lightgrey
 
 class Directory:
     FONT = "Times-Roman"
@@ -32,6 +33,47 @@ class Directory:
             self.__member_data = json.load(fh)
 
     def render(self):
+        self.render_title()
+
+        self.render_bdays()
+
+        self.render_families()
+
+        # Save PDF
+        self.__pdf.save()
+
+    def render_title(self):
+        x = 4.0*inch
+        y = 8.0*inch
+
+        # Border
+        self.__pdf.setStrokeColorRGB(0,0,0)
+        self.__pdf.setFillColor(lightgrey)
+        self.__pdf.roundRect(3.0*inch, 7.4 *inch, 5*inch, 1*inch, 10, fill=1)
+
+        # Top Title
+        self.__pdf.setFillColorRGB(0,0,0)
+        self.__pdf.setFont(Directory.FONT, 32)
+        self.__pdf.drawString(x, y, "Massey's Chapel")
+        self.__pdf.drawString(x-(.75*inch), y-(.50*inch), "United Methodist Church")
+
+        # Church Photo
+        photo = "%s/photos/title_photo.jpg" % (self.__data_path)
+        self.__pdf.drawImage(photo, 1.0*inch, 1.25*inch, width=650, height=434)
+
+        # Bottom - Sub-title
+        x = 4.25*inch
+        y = .75*inch
+        self.__pdf.setFont(Directory.FONT, 24)
+        self.__pdf.drawString(x, y, "Member Directory")
+        self.__pdf.drawString(x+(.35*inch), y-(.35*inch), datetime.strftime(datetime.now(), "%B %Y"))
+
+        self.__pdf.showPage()
+
+    def render_bdays(self):
+        pass
+
+    def render_families(self):
         side_it = itertools.cycle((Directory.SIDE_LEFT, Directory.SIDE_RIGHT))
 
         fi = 0
@@ -39,7 +81,7 @@ class Directory:
         while fi < num_members:
             # Vertical Line Down Center
             self.__pdf.setStrokeColorRGB(0,0,0)
-            self.__pdf.line(5.5*inch,0*inch, 5.5*inch, 8.5*inch)
+            self.__pdf.line(5.5*inch,0.10*inch, 5.5*inch, 8.4*inch)
 
             # Render the Family
             family1 = self.__member_data[fi]
@@ -66,9 +108,6 @@ class Directory:
 
             # End the Page
             self.__pdf.showPage()
-
-        # Save PDF
-        self.__pdf.save()
 
     def render_family(self, family, side, **kwargs):
         left_margin  = 0
