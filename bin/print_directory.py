@@ -8,12 +8,14 @@ import json
 import os.path as path
 import sys
 
+from directory import Directory
+
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import cm, mm, inch, pica
 from reportlab.lib.colors import black, white, lightgrey
 
-class Directory:
+class PrintDirectory:
     FONT = "Times-Roman"
 
     SIDE_LEFT  = 0
@@ -24,13 +26,10 @@ class Directory:
 
         # Create and Prep page
         output_name = path.basename(data_path)
-        self.__pdf = Canvas("%s.pdf" % (output_name), pagesize=landscape(letter), pageCompression=0)
+        self.__pdf = Canvas("%s/%s.pdf" % (data_path, output_name), pagesize=landscape(letter), pageCompression=0)
 
         # Read Directory Data
-        self.__member_data = None
-        member_data_file = "%s/directory.json" % (data_path)
-        with open(member_data_file, "r") as fh:
-            self.__member_data = json.load(fh)
+        self.__directory = Directory("%s/directory.json" % (data_path))
 
     def render(self):
         self.render_title()
@@ -53,7 +52,7 @@ class Directory:
 
         # Top Title
         self.__pdf.setFillColorRGB(0,0,0)
-        self.__pdf.setFont(Directory.FONT, 32)
+        self.__pdf.setFont(PrintDirectory.FONT, 32)
         self.__pdf.drawString(x, y, "Massey's Chapel")
         self.__pdf.drawString(x-(.75*inch), y-(.50*inch), "United Methodist Church")
 
@@ -64,7 +63,7 @@ class Directory:
         # Bottom - Sub-title
         x = 4.25*inch
         y = .75*inch
-        self.__pdf.setFont(Directory.FONT, 24)
+        self.__pdf.setFont(PrintDirectory.FONT, 24)
         self.__pdf.drawString(x, y, "Member Directory")
         self.__pdf.drawString(x+(.35*inch), y-(.35*inch), datetime.strftime(datetime.now(), "%B %Y"))
 
@@ -74,21 +73,24 @@ class Directory:
         pass
 
     def render_families(self):
-        side_it = itertools.cycle((Directory.SIDE_LEFT, Directory.SIDE_RIGHT))
+        side_it = itertools.cycle((PrintDirectory.SIDE_LEFT, PrintDirectory.SIDE_RIGHT))
 
-        fi = 0
-        num_members = len(self.__member_data)
-        while fi < num_members:
+        families = self.__directory.families()
+        # print families[0]
+        family_index = 0
+        family_count = len(families)
+        while family_index < family_count:
             # Vertical Line Down Center
             self.__pdf.setStrokeColorRGB(0,0,0)
             self.__pdf.line(5.5*inch,0.10*inch, 5.5*inch, 8.4*inch)
 
             # Render the Family
-            family1 = self.__member_data[fi]
-            fi += 1
+            family1 = families[family_index]
+            family_index += 1
             family1_args = {}
             family2_args = {}
-            if len(family1['members']) > 3:
+            # TODO: 2 page families HAVE to start on the LEFT page
+            if len(family1.members()) > 3:
                 family1_args = {
                     'm_start': 0,
                     'm_end': 3
@@ -100,11 +102,15 @@ class Directory:
                     'family_cont': True
                 }
             else:
-                family2 = self.__member_data[fi]
-                fi += 1
+                if family_index < family_count:
+                    family2 = families[family_index]
+                    family_index += 1
+                else:
+                    family2 = None
 
             self.render_family(family1, side_it.next(), **family1_args)
-            self.render_family(family2, side_it.next(), **family2_args)
+            if family2:
+                self.render_family(family2, side_it.next(), **family2_args)
 
             # End the Page
             self.__pdf.showPage()
@@ -112,28 +118,28 @@ class Directory:
     def render_family(self, family, side, **kwargs):
         left_margin  = 0
         right_margin = 0
-        if side == Directory.SIDE_LEFT:
+        if side == PrintDirectory.SIDE_LEFT:
             left_margin  = .25*inch
             right_margin = 5.5*inch
-        elif side == Directory.SIDE_RIGHT:
+        elif side == PrintDirectory.SIDE_RIGHT:
             left_margin  = 5.5*inch + .25*inch
             right_margin = 11*inch
         else:
             raise ValueError("Invalid value [%s] for 'side' parameter." % (side))
 
         # Family Name
-        self.__pdf.setFont(Directory.FONT, 18)
+        self.__pdf.setFont(PrintDirectory.FONT, 18)
         draw_pos = {'x': left_margin, 'y': 8.125*inch}
-        self.__pdf.drawString(draw_pos['x'], draw_pos['y'], family['name'])
+        self.__pdf.drawString(draw_pos['x'], draw_pos['y'], family.name)
 
         # Family Address
         if not kwargs.get('family_cont', False):
-            self.__pdf.setFont(Directory.FONT, 16)
+            self.__pdf.setFont(PrintDirectory.FONT, 16)
             draw_pos['y'] -= .20*inch
             addr = self.__pdf.beginText(draw_pos['x'], draw_pos['y'])
             addr.setLeading(15)
-            addr.textLine(family['address1'])
-            addr.textLine("%s, %s %s" % (family['city'], family['state'], family['zip']))
+            addr.textLine(family.address)
+            addr.textLine("%s, %s %s" % (family.city, family.state, family.zip))
             self.__pdf.drawText(addr)
 
         # Family Name/Address Divider
@@ -145,10 +151,11 @@ class Directory:
         pos_x = left_margin
         pos_y = 5.25*inch
 
+        all_members = family.members()
         m_start = kwargs.get('m_start', 0)
-        m_end   = kwargs.get('m_end', len(family['members']))
-        members = family['members'][m_start:m_end+1]
+        m_end   = kwargs.get('m_end', len(all_members))
 
+        members = all_members[m_start:m_end+1]
         for person in members:
             self.render_person(person, pos_x, pos_y, photo_dir)
             pos_x += 2.70*inch
@@ -159,32 +166,32 @@ class Directory:
     def render_person(self, person, pos_x, pos_y, photo_dir):
             # print "%s - %s" % (person['name'], pos_x)
             # Photo
-            photo = "%s/%s" % (photo_dir, person.get('photo', 'unknown.jpeg'))
+            photo_name = person.photo if person.photo else 'unknown.jpeg'
+            photo = "%s/%s" % (photo_dir, photo_name)
             self.__pdf.drawImage(photo, pos_x, pos_y, width=150,height=150)
 
             # Info
             info = self.__pdf.beginText(pos_x, pos_y - .25*inch)
 
             # Name
-            info.setFont(Directory.FONT, 16)
-            info.textLine(person['name'])
+            info.setFont(PrintDirectory.FONT, 16)
+            info.textLine(person.name)
 
-            info.setFont(Directory.FONT, 12)
+            info.setFont(PrintDirectory.FONT, 12)
 
             # Bday
-            date = "N/A"
-            date_str = person.get('birthday', None)
-            if date_str:
-                date = datetime.strptime(date_str, "%Y-%m-%d")
-                date = datetime.strftime(date, "%b %d")
-            info.textLine("Birthday: %s" % date)
+            date_str = "N/A"
+            if person.birthday:
+                date_str = datetime.strftime(person.birthday, "%b %d")
+            info.textLine("Birthday: %s" % date_str)
 
             # Email
-            info.textLine("Email: %s" % person.get('email', "N/A"))
+            email_addr = person.email if person.email else "N/A"
+            info.textLine("Email: %s" % email_addr)
 
             # Phones
-            if person.has_key('phone'):
-                for type, number in person['phone'].iteritems():
+            if person.phone:
+                for type, number in person.phone.iteritems():
                     # info.textLine("Phone: %s (%s)" % (number, type))
                     info.textLine("%s: %s" % (type.capitalize(), number))
 
@@ -207,7 +214,7 @@ def main():
         if not path.exists(data_path):
             raise Exception("Path '%s' does not exist." % (data_path))
 
-    directory = Directory(data_path)
+    directory = PrintDirectory(data_path)
     directory.render()
 
 if __name__ == '__main__':
