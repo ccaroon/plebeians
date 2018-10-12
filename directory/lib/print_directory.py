@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+################################################################################
 # http://www.devshed.com/c/a/Python/Python-for-PDF-Generation/
-# ------------------------------------------------------------------------------
 ################################################################################
 from datetime import datetime
 import itertools
@@ -76,7 +75,6 @@ class PrintDirectory:
         side_it = itertools.cycle((PrintDirectory.SIDE_LEFT, PrintDirectory.SIDE_RIGHT))
 
         families = self.__directory.families()
-        # print families[0]
         family_index = 0
         family_count = len(families)
         while family_index < family_count:
@@ -164,7 +162,6 @@ class PrintDirectory:
                 pos_y = 1.90*inch
 
     def render_person(self, person, pos_x, pos_y, photo_dir):
-            # print "%s - %s" % (person['name'], pos_x)
             # Photo
             photo_name = person.photo if person.photo else 'unknown.jpeg'
             photo = "%s/%s" % (photo_dir, photo_name)
@@ -202,20 +199,3 @@ class PrintDirectory:
             #     info.textLine(rel)
 
             self.__pdf.drawText(info)
-
-# ------------------------------------------------------------------------------
-def main():
-    data_path = None
-    if len(sys.argv) < 2:
-        print "Usage: %s <data_dir>" % (sys.argv[0])
-        sys.exit(1)
-    else:
-        data_path = sys.argv[1]
-        if not path.exists(data_path):
-            raise Exception("Path '%s' does not exist." % (data_path))
-
-    directory = PrintDirectory(data_path)
-    directory.render()
-
-if __name__ == '__main__':
-    main()
