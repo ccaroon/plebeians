@@ -163,7 +163,7 @@ class PrintDirectory:
         members = all_members[m_start:m_end+1]
         for person in members:
             self.render_person(person, pos_x, pos_y, photo_dir)
-            pos_x += 2.70*inch
+            pos_x += 2.80*inch
             if pos_x >= right_margin:
                 pos_x = left_margin
                 pos_y = 1.90*inch
@@ -201,8 +201,9 @@ class PrintDirectory:
 
             # Relationships
             # TODO: Make smaller
-            # info.textLine("_________________________")
-            # for rel in person['relationships']:
-            #     info.textLine(rel)
+            # if person.relationships:
+            #     info.textLine("_________________________")
+            #     for rel in person.relationships:
+            #         info.textLine("%s: %s" % (rel['type'], rel['name']))
 
             self.__pdf.drawText(info)

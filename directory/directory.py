@@ -24,6 +24,7 @@ def cli(ctx):
 
 # ------------------------------------------------------------------------------
 # Add commands to main group
+cli.add_command(directory.data_fix)
 cli.add_command(directory.edit)
 cli.add_command(directory.dump)
 cli.add_command(directory.view)

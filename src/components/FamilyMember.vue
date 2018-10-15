@@ -11,14 +11,14 @@
     </v-card-title>
     <v-card-text>
       <strong>Birthday:</strong> {{ formatBDay(member.birthday) }}<br>
-      <strong>Email:</strong> <a v-bind:href="'mailto:' + member.email">{{ member.email }}</a><br>
+      <strong>Email:</strong> <a v-if="member.email" v-bind:href="'mailto:' + member.email">{{ member.email }}</a><span v-else>N/A</span><br>
       <span v-for="number in formatPhone()" :key="number">
         <strong>Phone:</strong> {{ number }}<br>
       </span>
     </v-card-text>
     <v-card-text>
       <v-chip outline text-color="black" small v-for="(rel, ri) in member.relationships" :key="ri">
-        {{ rel }}
+        {{ rel.type }}: {{ rel.name }}
       </v-chip>
     </v-card-text>
   </v-card>

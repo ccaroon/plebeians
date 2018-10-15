@@ -10,7 +10,7 @@
         <v-expansion-panel-content expand-icon="mdi-chevron-down" v-for="(household,hi) in this.displayData" :key="hi">
           <div class="headline" slot="header">
             <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
-            {{ household.name }} - <span class="title grey--text">{{ household.address1 }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
+            {{ household.name }} - <span class="title grey--text">{{ household.address }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
           </div>
           <v-layout row>
             <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">
@@ -19,10 +19,6 @@
               />
             </v-flex>
           </v-layout>
-          <v-card v-if="household.notes.length > 0">
-            <v-card-title class="subheading">Notes</v-card-title>
-            <v-card-text v-html="cleanNote(household.notes.join('\n'))"></v-card-text>
-          </v-card>
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-flex>
@@ -110,7 +106,20 @@ export default {
 
       axios.get(this.$config.dataPrefix + '/directory.json')
         .then(function (response) {
-          self.directory = response.data
+          var data = Object.values(response.data)
+          self.directory = data.sort(function (a, b) {
+            var nameA = a.name.toUpperCase()
+            var nameB = b.name.toUpperCase()
+            if (nameA < nameB) {
+              return -1
+            }
+            if (nameA > nameB) {
+              return 1
+            }
+
+            // names must be equal
+            return 0
+          })
           self.initSearch()
         })
         .catch(function (err) {

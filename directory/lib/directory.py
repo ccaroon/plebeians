@@ -63,7 +63,7 @@ class Directory:
             output_file = "%s-%s%s" % (path, id, ext)
 
         with open(output_file, 'w') as fh:
-            json.dump(self.to_json(), fh)
+            json.dump(self.to_json(), fh, indent=2)
 
     def __str__(self):
         return json.dumps(self.to_json(), indent=2)

@@ -17,16 +17,8 @@ class Person:
 
         self.phone = kwargs.get('phone', {})
         self.photo = kwargs.get('photo')
-        # TODO: store as reference to another Person
-        self.relationships = kwargs.get('relationships', {})
-
-        if isinstance(self.relationships, list):
-            converted_relationships = {}
-            for rel in self.relationships:
-                type, name = rel.split(':')
-                converted_relationships[type.lower()] = name.strip()
-
-            self.relationships = converted_relationships
+        # TODO: store as reference to another Person??
+        self.relationships = kwargs.get('relationships', [])
 
     def to_json(self):
         data = {
