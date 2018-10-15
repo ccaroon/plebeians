@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import click
+import os.path
 
 import version
 
+from commands import directory
 from commands import export
 from commands import report
 
@@ -14,7 +16,7 @@ def cli(ctx):
     """
     CLI to manager the Plebians data file.
     """
-    data_path = "/Users/ccaroon/Dropbox/MCUMC/mcumc"
+    data_path = os.path.expanduser("~/Dropbox/MCUMC/mcumc")
     ctx.obj = {
         'data_path': data_path,
         'directory_file': "%s/directory.json" % (data_path)
@@ -22,6 +24,9 @@ def cli(ctx):
 
 # ------------------------------------------------------------------------------
 # Add commands to main group
+cli.add_command(directory.edit)
+cli.add_command(directory.dump)
+cli.add_command(directory.view)
 cli.add_command(export.export)
 cli.add_command(report.report)
 
