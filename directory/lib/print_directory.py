@@ -19,6 +19,7 @@ class PrintDirectory:
 
     SIDE_LEFT  = 0
     SIDE_RIGHT = 1
+    MAX_MEMBERS_PER_SIDE = 3
 
     def __init__(self, data_path):
         self.__data_path = data_path
@@ -86,29 +87,35 @@ class PrintDirectory:
             family1 = families[family_index]
             family_index += 1
             family1_args = {}
+            family1_side = side_it.next()
+
             family2_args = {}
-            # TODO: 2 page families HAVE to start on the LEFT page
-            if len(family1.members()) > 3:
+            family2_side = side_it.next()
+            if len(family1.members()) > PrintDirectory.MAX_MEMBERS_PER_SIDE:
                 family1_args = {
                     'm_start': 0,
-                    'm_end': 3
+                    'm_end': PrintDirectory.MAX_MEMBERS_PER_SIDE
                 }
                 family2 = family1
                 family2_args = {
-                    'm_start': 4,
-                    'm_end': 6,
+                    'm_start': PrintDirectory.MAX_MEMBERS_PER_SIDE + 1,
+                    'm_end': PrintDirectory.MAX_MEMBERS_PER_SIDE * 2,
                     'family_cont': True
                 }
             else:
                 if family_index < family_count:
                     family2 = families[family_index]
-                    family_index += 1
+                    # Don't start rendering a 2 page side family on the LEFT
+                    if len(family2.members()) > PrintDirectory.MAX_MEMBERS_PER_SIDE:
+                        family2 = None
+                    else:
+                        family_index += 1
                 else:
                     family2 = None
 
-            self.render_family(family1, side_it.next(), **family1_args)
+            self.render_family(family1, family1_side, **family1_args)
             if family2:
-                self.render_family(family2, side_it.next(), **family2_args)
+                self.render_family(family2, family2_side, **family2_args)
 
             # End the Page
             self.__pdf.showPage()
