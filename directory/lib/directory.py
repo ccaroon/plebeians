@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import os
 import os.path
 
 from lib.family import Family
@@ -30,9 +31,23 @@ class Directory:
         families.sort(key=lambda f: f.name)
         return families
 
-    def get(self, name, address):
-        id = Family.compute_id(name, address)
-        return self.__families.get(id, None)
+    def get(self, name, address=None):
+        family = None
+        if address:
+            id = Family.compute_id(name, address)
+            family = self.__families.get(id, None)
+        else:
+            family = []
+            for fam in self.families():
+                if fam.name == name:
+                    family.append(fam)
+
+            if len(family) == 0:
+                family = None
+            elif len(family) == 1:
+                family = family[0]
+
+        return family
 
     def to_json(self):
         data = {}
@@ -65,5 +80,31 @@ class Directory:
         with open(output_file, 'w') as fh:
             json.dump(self.to_json(), fh, indent=2)
 
+    def add(self, family):
+        self.__families[family.id] = family
+
+    def delete(self, family):
+        data_dir = os.path.dirname(self.__data_file)
+        for person in family.members():
+            if person.photo:
+                os.remove("%s/photos/%s" % (data_dir, person.photo))
+
+        self.__families.pop(family.id)
+
     def __str__(self):
         return json.dumps(self.to_json(), indent=2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#

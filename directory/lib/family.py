@@ -45,6 +45,9 @@ class Family:
         """ Get a family member (Person) by name """
         return self.__members.get(name, None)
 
+    def add(self, person):
+        self.__members[person.name] = person
+
     def to_json(self):
         data = {
             'id': self.id,

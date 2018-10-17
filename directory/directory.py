@@ -4,7 +4,7 @@ import os.path
 
 import version
 
-from commands import directory
+from commands import family
 from commands import export
 from commands import report
 
@@ -24,10 +24,7 @@ def cli(ctx):
 
 # ------------------------------------------------------------------------------
 # Add commands to main group
-cli.add_command(directory.data_fix)
-cli.add_command(directory.edit)
-cli.add_command(directory.dump)
-cli.add_command(directory.view)
+cli.add_command(family.family)
 cli.add_command(export.export)
 cli.add_command(report.report)
 
