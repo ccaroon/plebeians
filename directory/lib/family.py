@@ -12,6 +12,7 @@ class Family:
         self.city = kwargs.get('city')
         self.state = kwargs.get('state')
         self.zip = kwargs.get('zip')
+        self.notes = kwargs.get('notes', [])
 
         self.__members = {}
         for name, per_data in kwargs.get('members', {}).iteritems():
@@ -59,6 +60,7 @@ class Family:
             'city': self.city,
             'state': self.state,
             'zip': self.zip,
+            'notes': self.notes,
             'members': {}
         }
 

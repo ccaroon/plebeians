@@ -12,11 +12,19 @@
             <v-avatar><v-icon>{{ pickAHome(household.name) }}</v-icon></v-avatar>
             {{ household.name }} - <span class="title grey--text">{{ household.address }}, {{ household.city }} {{ household.state }} {{ household.zip }}</span>
           </div>
-          <v-layout row>
-            <v-flex xs3 v-for="(member,mi) in household.members" :key="mi">
+          <v-layout row v-for="(item,i) in new Array(Math.ceil(Object.values(household.members).length/membersPerRow))" :key="i">
+            <v-flex xs3 v-for="(member,mi) in Object.values(household.members).slice(i*membersPerRow, (i*membersPerRow)+membersPerRow)" :key="i+mi">
               <FamilyMember
                 v-bind:member="member"
               />
+            </v-flex>
+          </v-layout>
+          <v-layout row v-if="household.notes && household.notes.length > 0">
+            <v-flex xs3 mr-1 v-for="(note, ni) in household.notes" :key="ni">
+              <v-card>
+                <v-card-title class="pb-1 title yellow darken-1">{{ note.title }}</v-card-title>
+                <v-card-text class="pt-1 yellow lighten-1" v-html="formatNote(note)"></v-card-text>
+              </v-card>
             </v-flex>
           </v-layout>
         </v-expansion-panel-content>
@@ -59,8 +67,8 @@ export default {
 
   methods: {
 
-    cleanNote: function (note) {
-      return note.replace(/\\n/g, '<br>')
+    formatNote: function (note) {
+      return (note.text.replace(/\\n/g, '<br>'))
     },
 
     digitalRoot: function (word) {
@@ -142,7 +150,8 @@ export default {
       fuse: null,
       directory: [],
       displayData: [],
-      panelControl: []
+      panelControl: [],
+      membersPerRow: 4
     }
   }
 }

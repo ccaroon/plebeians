@@ -22,7 +22,8 @@ class Directory:
                 city = fam_data['city'],
                 state = fam_data['state'],
                 zip = fam_data['zip'],
-                members = fam_data['members']
+                members = fam_data['members'],
+                notes = fam_data.get('notes', [])
             )
             self.__families[family.id] = family
 
@@ -100,18 +101,3 @@ class Directory:
 
     def __str__(self):
         return json.dumps(self.to_json(), indent=2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

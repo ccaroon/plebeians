@@ -39,7 +39,7 @@ def edit(ctx, name):
     fields = fam_data.keys()
     fields.sort()
     for name in fields:
-        if name in ('id', 'name', 'members'):
+        if name in ('id', 'name', 'notes', 'members'):
             continue
 
         old_value = fam_data[name]
@@ -201,6 +201,8 @@ def fix(ctx, thing):
             for person in fam.members():
                 if person.email == "N/A":
                     person.email = None
+        directory.save()
+    elif thing == "add_notes":
         directory.save()
     else:
         print "I'm sorry Dave, I'm afraid I can't fix %s!" % (thing)
