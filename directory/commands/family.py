@@ -204,6 +204,10 @@ def fix(ctx, thing):
         directory.save()
     elif thing == "add_notes":
         directory.save()
+    elif thing == "family_member_to_list":
+        directory.save()
+    elif thing == "directory_to_list":
+        directory.save()
     else:
         print "I'm sorry Dave, I'm afraid I can't fix %s!" % (thing)
 # ------------------------------------------------------------------------------

@@ -14,8 +14,8 @@ class Directory:
         with open(data_file, 'r') as fh:
             self.__data = json.load(fh)
 
-        self.__families = {}
-        for name, fam_data in self.__data.iteritems():
+        self.__families = []
+        for fam_data in self.__data:
             family = Family(
                 name = fam_data['name'],
                 address = fam_data['address'],
@@ -25,35 +25,34 @@ class Directory:
                 members = fam_data['members'],
                 notes = fam_data.get('notes', [])
             )
-            self.__families[family.id] = family
+            self.__families.append(family)
 
     def families(self):
-        families = self.__families.values()
-        families.sort(key=lambda f: f.name)
-        return families
+        return self.__families
 
-    def get(self, name, address=None):
+    def get(self, name):
         family = None
-        if address:
-            id = Family.compute_id(name, address)
-            family = self.__families.get(id, None)
-        else:
-            family = []
-            for fam in self.families():
-                if fam.name == name:
-                    family.append(fam)
 
-            if len(family) == 0:
-                family = None
-            elif len(family) == 1:
-                family = family[0]
+        found = []
+        for fam in self.families():
+            if fam.name == name:
+                found.append(fam)
+
+        if len(found) == 0:
+            family = None
+        elif len(found) == 1:
+            family = found[0]
+        else:
+            family = found
 
         return family
 
     def to_json(self):
-        data = {}
-        for id, family in self.__families.iteritems():
-            data[id] = family.to_json()
+        self.__sort_families()
+
+        data = []
+        for family in self.families():
+            data.append(family.to_json())
 
         return data
 
@@ -82,7 +81,8 @@ class Directory:
             json.dump(self.to_json(), fh, indent=2)
 
     def add(self, family):
-        self.__families[family.id] = family
+        self.__families.append(family)
+        self.__sort_families()
 
     # NOTE: Currently moves the file instead of deleting it
     def delete_photo(self, person):
@@ -97,7 +97,11 @@ class Directory:
         for person in family.members():
             self.delete_photo(person)
 
-        self.__families.pop(family.id)
+        self.__families.remove(family)
+        self.__sort_families()
+
+    def __sort_families(self):
+        self.__families.sort(key=lambda f: f.name)
 
     def __str__(self):
         return json.dumps(self.to_json(), indent=2)

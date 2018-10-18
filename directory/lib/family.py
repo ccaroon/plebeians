@@ -14,60 +14,62 @@ class Family:
         self.zip = kwargs.get('zip')
         self.notes = kwargs.get('notes', [])
 
-        self.__members = {}
-        for name, per_data in kwargs.get('members', {}).iteritems():
-            name = per_data.get('name', None)
+        self.__members = []
+        for person_data in kwargs.get('members', []):
+            name = person_data.get('name', None)
             if name:
                 person = Person(
-                    name = per_data.get('name'),
-                    email = per_data.get('email', 'N/A'),
-                    birthday = per_data.get('birthday'),
-                    phone = per_data.get('phone', {}),
-                    photo = per_data.get('photo'),
-                    relationships = per_data.get('relationships', {})
+                    name = person_data.get('name'),
+                    email = person_data.get('email', 'N/A'),
+                    birthday = person_data.get('birthday'),
+                    phone = person_data.get('phone', {}),
+                    photo = person_data.get('photo'),
+                    relationships = person_data.get('relationships', {})
                 )
-                self.__members[name] = person
-
-        self.id = Family.compute_id(self.name, self.address)
-
-    @classmethod
-    def compute_id(cls, name, address):
-        id = md5.md5("%s|%s" % (name, address))
-        return id.hexdigest()
+                self.__members.append(person)
 
     def members(self):
         """ Return a list of family members """
-
-        members = self.__members.values()
-        members.sort(key=lambda m: m.name)
-        return members
+        return self.__members
 
     def get(self, name):
         """ Get a family member (Person) by name """
-        return self.__members.get(name, None)
+
+        member = None
+        for person in self.members():
+            if person.name == name:
+                member = person
+                break
+
+        return member
 
     def add(self, person):
-        self.__members[person.name] = person
+        self.__members.append(person)
+        self.__sort_members()
 
     def delete(self, person):
-        self.__members.pop(person.name)
+        self.__members.remove(person)
+        self.__sort_members()
 
     def to_json(self):
         data = {
-            'id': self.id,
             'name': self.name,
             'address': self.address,
             'city': self.city,
             'state': self.state,
             'zip': self.zip,
             'notes': self.notes,
-            'members': {}
+            'members': []
         }
 
-        for name, person in self.__members.iteritems():
-            data['members'][name] = person.to_json()
+        self.__sort_members()
+        for person in self.__members:
+            data['members'].append(person.to_json())
 
         return data
+
+    def __sort_members(self):
+        self.__members.sort(key=lambda m: m.name)
 
     def __str__(self):
         return json.dumps(self.to_json(), indent=2)

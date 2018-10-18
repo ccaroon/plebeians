@@ -114,20 +114,7 @@ export default {
 
       axios.get(this.$config.dataPrefix + '/directory.json')
         .then(function (response) {
-          var data = Object.values(response.data)
-          self.directory = data.sort(function (a, b) {
-            var nameA = a.name.toUpperCase()
-            var nameB = b.name.toUpperCase()
-            if (nameA < nameB) {
-              return -1
-            }
-            if (nameA > nameB) {
-              return 1
-            }
-
-            // names must be equal
-            return 0
-          })
+          self.directory = response.data
           self.initSearch()
         })
         .catch(function (err) {
@@ -138,7 +125,7 @@ export default {
     initSearch: function () {
       this.displayData = this.directory
       this.fuse = new Fuse(this.directory, {
-        keys: ['name', 'members.name'],
+        keys: ['name', 'city', 'members.name'],
         threshold: 0.0,
         shouldSort: true
       })
