@@ -4,15 +4,17 @@ import re
 from lib.directory import Directory
 from lib.family import Family
 from lib.person import Person
-
+# ------------------------------------------------------------------------------
 @click.group()
 def family():
+    """ Manage Family Data """
     pass
-
+# ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
 @click.pass_context
 def view(ctx, name):
+    """ View a Family """
     directory = Directory(ctx.obj['directory_file'])
     family = directory.get(name)
 
@@ -20,60 +22,40 @@ def view(ctx, name):
         family = __choose_family(family)
 
     print family
+# ------------------------------------------------------------------------------
+@family.command()
+@click.argument("name")
+@click.pass_context
+def edit(ctx, name):
+    """ Edit a Family's Data """
+    directory = Directory(ctx.obj['directory_file'])
+    family = directory.get(name)
 
-# @click.command()
-# @click.argument("thing")
-# @click.pass_context
-# def data_fix(ctx, thing):
-#     directory = Directory(ctx.obj['directory_file'])
-#
-#     # Fix relationships structure
-#     if thing == "relationships":
-#         for fam in directory.families():
-#             for person in fam.members():
-#                 new_rels = []
-#                 for rel in person.relationships:
-#                     new_rels.append({'type': rel['type'].capitalize(), 'name': rel['name']})
-#
-#                 person.relationships = new_rels
-#         directory.save()
-#     # Fix email addr -- set to None if none
-#     elif thing == "email":
-#         for fam in directory.families():
-#             for person in fam.members():
-#                 if person.email == "N/A":
-#                     person.email = None
-#         directory.save()
-#     else:
-#         print "data_fix: Unknown 'thing': %s" % (thing)
-#
-# @click.command()
-# @click.argument("name")
-# @click.argument("address")
-# @click.pass_context
-# def edit(ctx, name, address):
-#     directory = Directory(ctx.obj['directory_file'])
-#
-#     family = directory.get(name, address)
-#
-#     need_to_save = False
-#     fields = family.to_json()
-#     for name,value in fields.iteritems():
-#         if name in ('id', 'members'):
-#             continue
-#
-#         new_value = raw_input("%s (%s): " % (name, value))
-#         if new_value:
-#             need_to_save = True
-#             setattr(family, name, new_value)
-#
-#     if need_to_save:
-#         directory.save()
-#
+    if isinstance(family, list):
+        family = __choose_family(family)
+
+    need_to_save = False
+    fam_data = family.to_json()
+    fields = fam_data.keys()
+    fields.sort()
+    for name in fields:
+        if name in ('id', 'name', 'members'):
+            continue
+
+        old_value = fam_data[name]
+        new_value = raw_input("%s (%s): " % (name, old_value))
+        if new_value:
+            need_to_save = True
+            setattr(family, name, new_value)
+
+    if need_to_save:
+        directory.save()
+# ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
 @click.pass_context
 def add(ctx, name):
+    """ Add a new Family to the Directory """
     directory = Directory(ctx.obj['directory_file'])
 
     family_data = Family(name=name).to_json()
@@ -147,11 +129,12 @@ def add(ctx, name):
 
     # print new_family
     directory.save()
-
+# ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
 @click.pass_context
 def delete(ctx, name):
+    """ Delete a Family from the Directory """
     directory = Directory(ctx.obj['directory_file'])
     family = directory.get(name)
 
@@ -164,8 +147,63 @@ def delete(ctx, name):
         directory.save()
     else:
         print "Not Deleting Family: %s - %s" % (family.name, family.address)
+# ------------------------------------------------------------------------------
+@family.command()
+@click.argument("name")
+@click.option("--family-name", "-f", help="Specify Family Name")
+@click.pass_context
+def del_member(ctx, name, family_name):
+    """ Remove a Family Member from a Family """
+    directory = Directory(ctx.obj['directory_file'])
 
+    family = None
+    lookup_name = None
+    if family_name:
+        lookup_name = family_name
+    else:
+        name_parts = name.split()
+        lookup_name = name_parts.pop()
 
+    family = directory.get(lookup_name)
+    if family:
+        if isinstance(family, list):
+            family = __choose_family(family)
+    else:
+        print "No Family found for '%s'" % (name)
+
+    person = family.get(name)
+    family.delete(person)
+    directory.delete_photo(person)
+
+    directory.save()
+    print "'%s' successfully deleted." % (name)
+# ------------------------------------------------------------------------------
+@family.command()
+@click.argument("thing")
+@click.pass_context
+def fix(ctx, thing):
+    """ Run bulk data fix commands """
+    directory = Directory(ctx.obj['directory_file'])
+
+    # Fix relationships structure
+    if thing == "relationships":
+        for fam in directory.families():
+            for person in fam.members():
+                new_rels = []
+                for rel in person.relationships:
+                    new_rels.append({'type': rel['type'].capitalize(), 'name': rel['name']})
+
+                person.relationships = new_rels
+        directory.save()
+    # Fix email addr -- set to None if none
+    elif thing == "email":
+        for fam in directory.families():
+            for person in fam.members():
+                if person.email == "N/A":
+                    person.email = None
+        directory.save()
+    else:
+        print "I'm sorry Dave, I'm afraid I can't fix %s!" % (thing)
 # ------------------------------------------------------------------------------
 def __prompt_to_continue(**kwargs):
     accepted_choice = kwargs.get('accept', 'y')

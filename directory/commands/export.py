@@ -1,11 +1,12 @@
 import click
 
 from lib.print_directory import PrintDirectory
-
+# ------------------------------------------------------------------------------
 @click.group()
 def export():
+    """ Export the Directory Data to various other formats """
     pass
-
+# ------------------------------------------------------------------------------
 @export.command()
 @click.pass_context
 def pdf(ctx):

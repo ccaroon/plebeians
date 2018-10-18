@@ -48,6 +48,9 @@ class Family:
     def add(self, person):
         self.__members[person.name] = person
 
+    def delete(self, person):
+        self.__members.pop(person.name)
+
     def to_json(self):
         data = {
             'id': self.id,

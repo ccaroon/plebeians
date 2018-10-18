@@ -83,11 +83,18 @@ class Directory:
     def add(self, family):
         self.__families[family.id] = family
 
+    # NOTE: Currently moves the file instead of deleting it
+    def delete_photo(self, person):
+        if person.photo:
+            data_dir = os.path.dirname(self.__data_file)
+
+            src_file = "%s/photos/%s" % (data_dir, person.photo)
+            dest_file = "%s/backup/%s" % (data_dir, person.photo)
+            os.rename(src_file, dest_file)
+
     def delete(self, family):
-        data_dir = os.path.dirname(self.__data_file)
         for person in family.members():
-            if person.photo:
-                os.remove("%s/photos/%s" % (data_dir, person.photo))
+            self.delete_photo(person)
 
         self.__families.pop(family.id)
 
