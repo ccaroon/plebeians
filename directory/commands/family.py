@@ -39,11 +39,29 @@ def edit(ctx, name):
     fields = fam_data.keys()
     fields.sort()
     for name in fields:
-        if name in ('id', 'name', 'notes', 'members'):
+        if name in ('id', 'name', 'members'):
             continue
 
-        old_value = fam_data[name]
-        new_value = raw_input("%s (%s): " % (name, old_value))
+        # TODO: what if notes already exist?
+        if name == 'notes':
+            new_value = []
+            add_notes = True
+            while add_notes:
+                print "----- Add Note -----"
+                title = raw_input("%s title: " % (name))
+                text  = raw_input("%s text: " % (name))
+
+                if title and text:
+                    new_value.append({
+                        'title': title,
+                        'text': text
+                    })
+
+                add_notes = __prompt_to_continue(msg="Add More Notes")
+        else:
+            old_value = fam_data[name]
+            new_value = raw_input("%s (%s): " % (name, old_value))
+
         if new_value:
             need_to_save = True
             setattr(family, name, new_value)

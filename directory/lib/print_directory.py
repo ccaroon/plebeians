@@ -16,6 +16,7 @@ from reportlab.lib.colors import black, white, lightgrey
 
 class PrintDirectory:
     FONT = "Times-Roman"
+    FONT_BOLD = "Times-Bold"
 
     SIDE_LEFT  = 0
     SIDE_RIGHT = 1
@@ -196,14 +197,45 @@ class PrintDirectory:
             # Phones
             if person.phone:
                 for type, number in person.phone.iteritems():
-                    # info.textLine("Phone: %s (%s)" % (number, type))
                     info.textLine("%s: %s" % (type.capitalize(), number))
 
             # Relationships
-            # TODO: Make smaller
-            # if person.relationships:
-            #     info.textLine("_________________________")
-            #     for rel in person.relationships:
-            #         info.textLine("%s: %s" % (rel['type'], rel['name']))
+            if person.relationships:
+                spouse = None
+                children = []
+                for rel in person.relationships:
+                    if rel['type'] == 'Spouse':
+                        spouse = rel['name']
+                    elif rel['type'] == 'Child':
+                        children.append(rel['name'])
+
+                info.textLine("_________________________")
+                if spouse:
+                    info.textLine("Spouse: %s" % (spouse))
+                if children:
+                    # TODO: if More than X children, split line
+                    info.textLine("Children: %s" % (", ".join(children)))
 
             self.__pdf.drawText(info)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
