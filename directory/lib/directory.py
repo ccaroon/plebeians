@@ -104,4 +104,7 @@ class Directory:
         self.__families.sort(key=lambda f: f.name)
 
     def __str__(self):
+        return self.__data_file
+
+    def __repr__(self):
         return json.dumps(self.to_json(), indent=2)

@@ -4,6 +4,7 @@ import re
 from lib.directory import Directory
 from lib.family import Family
 from lib.person import Person
+from lib.prompt import Prompt
 # ------------------------------------------------------------------------------
 @click.group()
 def family():
@@ -18,10 +19,9 @@ def view(ctx, name):
     directory = Directory(ctx.obj['directory_file'])
     family = directory.get(name)
 
-    if isinstance(family, list):
-        family = __choose_family(family)
+    family = Prompt.choose_from_list(family, "Which Family? ")
 
-    print family
+    print repr(family)
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
@@ -31,8 +31,7 @@ def edit(ctx, name):
     directory = Directory(ctx.obj['directory_file'])
     family = directory.get(name)
 
-    if isinstance(family, list):
-        family = __choose_family(family)
+    family = Prompt.choose_from_list(family, "Which Family? ")
 
     need_to_save = False
     fam_data = family.to_json()
@@ -44,23 +43,10 @@ def edit(ctx, name):
 
         # TODO: what if notes already exist?
         if name == 'notes':
-            new_value = []
-            add_notes = True
-            while add_notes:
-                print "----- Add Note -----"
-                title = raw_input("%s title: " % (name))
-                text  = raw_input("%s text: " % (name))
-
-                if title and text:
-                    new_value.append({
-                        'title': title,
-                        'text': text
-                    })
-
-                add_notes = __prompt_to_continue(msg="Add More Notes")
+            new_value = Prompt.notes()
         else:
             old_value = fam_data[name]
-            new_value = raw_input("%s (%s): " % (name, old_value))
+            new_value = Prompt.input("%s (%s): " % (name, old_value))
 
         if new_value:
             need_to_save = True
@@ -68,6 +54,46 @@ def edit(ctx, name):
 
     if need_to_save:
         directory.save()
+# ------------------------------------------------------------------------------
+@family.command()
+@click.argument("name")
+@click.option("--family-name", "-f", help="Specify Family Name")
+@click.pass_context
+def edit_member(ctx, name, family_name):
+    """ Edit a Family Member """
+    directory = Directory(ctx.obj['directory_file'])
+
+    family, person = __find_member(directory, name, family_name)
+
+    if person:
+        need_to_save = False
+        person_data = person.to_json()
+        fields = person_data.keys()
+        fields.sort()
+        for field in fields:
+            if field in ('name', 'photo'):
+                continue
+
+            if field == 'phone':
+                new_value = Prompt.phone()
+                if new_value:
+                    person_data['phone'].update(new_value)
+                    new_value = person_data['phone']
+            elif field == 'relationships':
+                new_value = Prompt.relationships()
+            else:
+                old_value = person_data[field]
+                new_value = Prompt.input("%s (%s): " % (field, old_value))
+
+            if new_value:
+                need_to_save = True
+                setattr(person, field, new_value)
+
+        if need_to_save:
+            directory.save()
+    else:
+        print "Member not found: '%s'" % (name)
+
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
@@ -84,7 +110,7 @@ def add(ctx, name):
         if name in ('id', 'name', 'members'):
             continue
 
-        new_value = raw_input("%s: " % (name))
+        new_value = Prompt.input("%s: " % (name))
         family_data[name] = new_value if new_value else ""
 
     new_family = Family(**family_data)
@@ -103,47 +129,20 @@ def add(ctx, name):
                 continue
 
             if name == 'relationships':
-                member_data['relationships'] = []
-                add_rels = True
-                while add_rels:
-                    print "----- Add Relationship -----"
-                    rel_type = raw_input("%s type: " % (name))
-                    rel_name = raw_input("%s name: " % (name))
-
-                    if rel_type and rel_name:
-                        member_data['relationships'].append({
-                            'type': rel_type,
-                            'name': rel_name
-                        })
-
-                    add_rels = __prompt_to_continue(msg="Add More Relations")
+                member_data['relationships'] = Prompt.relationships()
             elif name == 'phone':
-                member_data['phone'] = {}
-                add_phone = True
-                while add_phone:
-                    print "----- Add Phone -----"
-                    phone_type = raw_input("%s type: " % (name)).upper()
-                    phone_num = raw_input("%s number: " % (name))
-
-                    # Format Number
-                    number = re.sub("\D", "", phone_num)
-                    match = re.search("(?P<exchange>\d\d\d)(?P<prefix>\d\d\d)(?P<last_four>\d\d\d\d)", number)
-                    parts = match.groupdict()
-                    number = "(%s) %s-%s" % (parts['exchange'], parts['prefix'], parts['last_four'])
-                    member_data['phone'][phone_type] = number
-
-                    add_phone = __prompt_to_continue(msg="Add More Phones")
+                member_data['phone'] = Prompt.phone()
             else:
-                new_value = raw_input("%s: " % (name))
+                new_value = Prompt.input("%s: " % (name))
                 member_data[name] = new_value if new_value else ""
 
-        member_data['birthday'] = raw_input("birthday (YYYY-MM-DD)? ")
+        member_data['birthday'] = Prompt.input("birthday (YYYY-MM-DD)? ")
         member_data['photo'] = re.sub('\W','-', member_data['name'].lower()) + ".jpeg"
 
         new_member = Person(**member_data)
         new_family.add(new_member)
 
-        add_members = __prompt_to_continue(msg="Add More Members")
+        add_members = Prompt.more(msg="Add More Members")
 
     # print new_family
     directory.save()
@@ -156,10 +155,9 @@ def delete(ctx, name):
     directory = Directory(ctx.obj['directory_file'])
     family = directory.get(name)
 
-    if isinstance(family, list):
-        family = __choose_family(family)
+    family = Prompt.choose_from_list(family, "Which Family? ")
 
-    choice = raw_input("Confirm Delete: %s - %s (yes|no)? " % (family.name, family.address))
+    choice = Prompt.input("Confirm Delete: %s - %s (yes|no)? " % (family.name, family.address))
     if choice == 'yes':
         directory.delete(family)
         directory.save()
@@ -174,27 +172,16 @@ def del_member(ctx, name, family_name):
     """ Remove a Family Member from a Family """
     directory = Directory(ctx.obj['directory_file'])
 
-    family = None
-    lookup_name = None
-    if family_name:
-        lookup_name = family_name
+    family, person = __find_member(directory, name, family_name)
+
+    if person:
+        family.delete(person)
+        directory.delete_photo(person)
+
+        directory.save()
+        print "'%s' successfully deleted." % (name)
     else:
-        name_parts = name.split()
-        lookup_name = name_parts.pop()
-
-    family = directory.get(lookup_name)
-    if family:
-        if isinstance(family, list):
-            family = __choose_family(family)
-    else:
-        print "No Family found for '%s'" % (name)
-
-    person = family.get(name)
-    family.delete(person)
-    directory.delete_photo(person)
-
-    directory.save()
-    print "'%s' successfully deleted." % (name)
+        print "Member not found: '%s'" % (name)
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("thing")
@@ -229,24 +216,21 @@ def fix(ctx, thing):
     else:
         print "I'm sorry Dave, I'm afraid I can't fix %s!" % (thing)
 # ------------------------------------------------------------------------------
-def __prompt_to_continue(**kwargs):
-    accepted_choice = kwargs.get('accept', 'y')
-    choice = raw_input("%s? (%s|n)" % (kwargs.get("msg", "Continue"), accepted_choice))
-    return True if choice == accepted_choice else False
-
-# ------------------------------------------------------------------------------
-def __choose_family(family_list):
+def __find_member(directory, name, family_name=None):
+    person = None
     family = None
+    lookup_name = None
 
-    num = 1
-    for fam in family_list:
-        print "%d) %s - %s" % (num, fam.name, fam.address)
-        num += 1
+    if family_name:
+        lookup_name = family_name
+    else:
+        name_parts = name.split()
+        lookup_name = name_parts.pop()
 
-    choice = raw_input("Which Family? ")
-    choice = int(choice) if choice else 0
+    family = directory.get(lookup_name)
+    family = Prompt.choose_from_list(family, "Which Family? ")
 
-    if choice in range(1, len(family_list)+1):
-        family = family_list[choice-1]
+    if family:
+        person = family.get(name)
 
-    return family
+    return (family, person)

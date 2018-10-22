@@ -72,4 +72,7 @@ class Family:
         self.__members.sort(key=lambda m: m.name)
 
     def __str__(self):
+        return "%s - %s" % (self.name, self.address)
+
+    def __repr__(self):
         return json.dumps(self.to_json(), indent=2)
