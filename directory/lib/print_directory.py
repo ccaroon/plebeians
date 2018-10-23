@@ -155,7 +155,7 @@ class PrintDirectory:
         # Member Photo, Info
         photo_dir = "%s/photos" % (self.__data_path)
         pos_x = left_margin
-        pos_y = 5.25*inch
+        pos_y = 5.35*inch
 
         all_members = family.members()
         m_start = kwargs.get('m_start', 0)
@@ -201,20 +201,28 @@ class PrintDirectory:
 
             # Relationships
             if person.relationships:
-                spouse = None
-                children = []
-                for rel in person.relationships:
-                    if rel['type'] == 'Spouse':
-                        spouse = rel['name']
-                    elif rel['type'] == 'Child':
-                        children.append(rel['name'])
-
                 info.textLine("_________________________")
-                if spouse:
-                    info.textLine("Spouse: %s" % (spouse))
-                if children:
-                    # TODO: if More than X children, split line
-                    info.textLine("Children: %s" % (", ".join(children)))
+                if len(person.relationships) > 2:
+                    spouse = None
+                    children = []
+                    for rel in person.relationships:
+                        if rel['type'] == 'Spouse':
+                            spouse = rel['name']
+                        elif rel['type'] == 'Child':
+                            children.append(rel['name'])
+
+                    if spouse:
+                        info.textLine("Spouse: %s" % (spouse))
+                    if children:
+                        batch1 = children[:2]
+                        batch2 = children[2:]
+
+                        info.textLine("Children: %s" % (", ".join(batch1)))
+                        if batch2:
+                            info.textLine("                %s" % (", ".join(batch2)))
+                else:
+                    for rel in person.relationships:
+                        info.textLine("%s: %s" % (rel['type'], rel['name']))
 
             self.__pdf.drawText(info)
 
