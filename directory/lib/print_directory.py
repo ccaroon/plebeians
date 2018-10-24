@@ -71,7 +71,67 @@ class PrintDirectory:
         self.__pdf.showPage()
 
     def render_bdays(self):
-        pass
+        bdays = [{},{},{},{},{},{},{},{},{},{},{},{},{}]
+
+        for family in self.__directory.families():
+            for person in family.members():
+                if person.birthday:
+                    month = person.birthday.month
+                    day = person.birthday.day
+                    name = person.name
+
+                    bucket = bdays[month].get(day, [])
+                    if not bucket:
+                        bdays[month][day] = bucket
+                    bucket.append(name)
+
+        self.__pdf.setFillColorRGB(0,0,0)
+        self.__pdf.setFont(PrintDirectory.FONT, 24)
+        self.__pdf.drawString(4.85*inch, 8.2*inch, "Birthdays")
+
+        # Vertical Line Down Center
+        self.__pdf.setStrokeColorRGB(0,0,0)
+        self.__pdf.line(5.5*inch, 0.10*inch, 5.5*inch, 8.0*inch)
+
+        origin_x = 0.5*inch
+        origin_y = 7.75*inch
+        width = 2.25*inch
+        height = 2.5*inch
+        row = 1
+        print "ox:%d oy:%d w:%d h:%d" % (origin_x, origin_y, width,height)
+        self.__pdf.setFont(PrintDirectory.FONT, 9)
+        for num, month in enumerate(bdays):
+            if not month:
+                continue
+
+            if num % 2 != 0:
+                # ODD
+                offset = row - 1
+                pos_x = origin_x
+                pos_y = origin_y - (offset*height)
+                # print "ODD - %d] x:%d y:%d" % (num, pos_x,pos_y)
+            else:
+                # EVEN
+                offset = row - 1
+                row += 1
+                if row > 3:
+                    row = 1
+                pos_x = origin_x + width
+                pos_y = origin_y - (offset*height)
+                # print "EVEN - %d] x:%d y:%d" % (num, pos_x,pos_y)
+
+            if num > 6:
+                pos_x += 5.5*inch
+
+            info = self.__pdf.beginText(pos_x, pos_y)
+            info.textLine("-- %s --" % (datetime(1900,num,01).strftime("%B").upper()))
+            for day,names in month.iteritems():
+                for n in names:
+                    info.textLine("%02d) %s" % (day,n))
+
+            self.__pdf.drawText(info)
+
+        self.__pdf.showPage()
 
     def render_families(self):
         side_it = itertools.cycle((PrintDirectory.SIDE_LEFT, PrintDirectory.SIDE_RIGHT))
