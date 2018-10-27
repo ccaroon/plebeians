@@ -261,7 +261,6 @@ class PrintDirectory:
 
             # Relationships
             if person.relationships:
-                info.textLine("_________________________")
                 if len(person.relationships) > 2:
                     spouse = None
                     children = []
@@ -271,16 +270,23 @@ class PrintDirectory:
                         elif rel['type'] == 'Child':
                             children.append(rel['name'])
 
+                    text_lines = []
                     if spouse:
-                        info.textLine("Spouse: %s" % (spouse))
+                        text_lines.append("Spouse: %s" % (spouse))
                     if children:
                         batch1 = children[:2]
                         batch2 = children[2:]
 
-                        info.textLine("Children: %s" % (", ".join(batch1)))
+                        text_lines.append("Children: %s" % (", ".join(batch1)))
                         if batch2:
-                            info.textLine("                %s" % (", ".join(batch2)))
+                            text_lines.append("                %s" % (", ".join(batch2)))
+
+                    if text_lines:
+                        info.textLine("_________________________")
+                        for line in text_lines:
+                            info.textLine(line)
                 else:
+                    info.textLine("_________________________")
                     for rel in person.relationships:
                         info.textLine("%s: %s" % (rel['type'], rel['name']))
 
