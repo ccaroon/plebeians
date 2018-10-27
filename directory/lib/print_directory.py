@@ -98,7 +98,7 @@ class PrintDirectory:
         width = 2.25*inch
         height = 2.5*inch
         row = 1
-        print "ox:%d oy:%d w:%d h:%d" % (origin_x, origin_y, width,height)
+
         self.__pdf.setFont(PrintDirectory.FONT, 9)
         for num, month in enumerate(bdays):
             if not month:
