@@ -22,12 +22,11 @@ class PrintDirectory:
     SIDE_RIGHT = 1
     MAX_MEMBERS_PER_SIDE = 3
 
-    def __init__(self, data_path):
+    def __init__(self, data_path, file_name):
         self.__data_path = data_path
 
         # Create and Prep page
-        output_name = path.basename(data_path)
-        self.__pdf = Canvas("%s/%s.pdf" % (data_path, output_name), pagesize=landscape(letter), pageCompression=0)
+        self.__pdf = Canvas("%s/%s.pdf" % (data_path, file_name), pagesize=landscape(letter), pageCompression=0)
 
         # Read Directory Data
         self.__directory = Directory("%s/directory.json" % (data_path))

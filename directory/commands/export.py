@@ -11,5 +11,7 @@ def export():
 @click.pass_context
 def pdf(ctx):
     """Export Directory Data to a Pretty PDF"""
-    pdir = PrintDirectory(ctx.obj['data_path'])
+    config = ctx.obj['config']
+    
+    pdir = PrintDirectory(config.path('data:path'), config.org)
     pdir.render()

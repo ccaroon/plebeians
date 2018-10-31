@@ -11,5 +11,5 @@ def report():
 @click.pass_context
 def stats(ctx):
     """ Show some directory stats """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
     directory.stats()

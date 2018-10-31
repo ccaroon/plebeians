@@ -16,7 +16,7 @@ def family():
 @click.pass_context
 def view(ctx, name):
     """ View a Family """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
     family = directory.get(name)
 
     family = Prompt.choose_from_list(family, "Which Family? ")
@@ -28,7 +28,7 @@ def view(ctx, name):
 @click.pass_context
 def edit(ctx, name):
     """ Edit a Family's Data """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
     family = directory.get(name)
 
     family = Prompt.choose_from_list(family, "Which Family? ")
@@ -61,7 +61,7 @@ def edit(ctx, name):
 @click.pass_context
 def edit_member(ctx, name, family_name):
     """ Edit a Family Member """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
 
     family, person = __find_member(directory, name, family_name)
 
@@ -100,7 +100,7 @@ def edit_member(ctx, name, family_name):
 @click.pass_context
 def add(ctx, name):
     """ Add a new Family to the Directory """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
 
     family_data = Family(name=name).to_json()
     fields = family_data.keys()
@@ -152,7 +152,7 @@ def add(ctx, name):
 @click.pass_context
 def delete(ctx, name):
     """ Delete a Family from the Directory """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
     family = directory.get(name)
 
     family = Prompt.choose_from_list(family, "Which Family? ")
@@ -170,7 +170,7 @@ def delete(ctx, name):
 @click.pass_context
 def del_member(ctx, name, family_name):
     """ Remove a Family Member from a Family """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
 
     family, person = __find_member(directory, name, family_name)
 
@@ -188,7 +188,7 @@ def del_member(ctx, name, family_name):
 @click.pass_context
 def fix(ctx, thing):
     """ Run bulk data fix commands """
-    directory = Directory(ctx.obj['directory_file'])
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
 
     # Fix relationships structure
     if thing == "relationships":

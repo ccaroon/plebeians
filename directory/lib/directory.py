@@ -78,7 +78,7 @@ class Directory:
             output_file = "%s-%s%s" % (path, id, ext)
 
         with open(output_file, 'w') as fh:
-            json.dump(self.to_json(), fh, indent=2)
+            json.dump(self.to_json(), fh, indent=2, separators=(',', ': '))
 
     def add(self, family):
         self.__families.append(family)
