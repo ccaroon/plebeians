@@ -8,6 +8,7 @@ import version
 
 from commands import family
 from commands import export
+from commands import imprt
 from commands import publish
 from commands import report
 
@@ -35,6 +36,7 @@ def cli(ctx):
 # Add commands to main group
 cli.add_command(family.family)
 cli.add_command(export.export)
+cli.add_command(imprt.imprt)
 cli.add_command(publish.publish)
 cli.add_command(report.report)
 

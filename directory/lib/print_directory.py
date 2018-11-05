@@ -65,7 +65,7 @@ class PrintDirectory:
         y = .75*inch
         self.__pdf.setFont(PrintDirectory.FONT, 24)
         self.__pdf.drawString(x, y, "Member Directory")
-        self.__pdf.drawString(x+(.35*inch), y-(.35*inch), datetime.strftime(datetime.now(), "%B %Y"))
+        self.__pdf.drawString(x+(.15*inch), y-(.35*inch), datetime.strftime(datetime.now(), "%B %Y"))
 
         self.__pdf.showPage()
 

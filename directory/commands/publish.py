@@ -25,8 +25,17 @@ def pdf(ctx):
     __upload_file(config, "%s.pdf" % (config.org), 'bin')
 
 # ------------------------------------------------------------------------------
+@publish.command()
+@click.argument('photo')
+@click.pass_context
+def photo(ctx, photo):
+    """ Publish a photo to an FTP site """
+    config = ctx.obj['config']
+    __upload_file(config, "photos/%s" % (photo), 'bin', remote='photo_path')
+
+# ------------------------------------------------------------------------------
 # file_type: txt | bin
-def __upload_file(config, file_name, file_type):
+def __upload_file(config, file_name, file_type, **kwargs):
     host = config.get('publish:host')
     user = config.get('publish:username')
     passwd = config.get('publish:password')
@@ -36,7 +45,11 @@ def __upload_file(config, file_name, file_type):
     if not os.path.exists(local_file):
         raise Exception("Local file does not exist: '%s" % (local_file))
 
-    remote = config.path('publish:base_path', 'publish:file_map:%s' % (file_name))
+    if kwargs.get('remote'):
+        remote = config.path('publish:base_path', 'publish:file_map:%s' % (kwargs.get('remote')), file_name)
+    else:
+        remote = config.path('publish:base_path', 'publish:file_map:%s' % (file_name))
+    
     remote_file = os.path.basename(remote)
     remote_path = os.path.dirname(remote)
 
