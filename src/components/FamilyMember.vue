@@ -49,8 +49,8 @@ export default {
     formatBDay: function (dateStr) {
       var bDay = 'N/A'
       if (dateStr) {
-        var date = new Date(dateStr)
-        bDay = monthAbbr[date.getMonth()] + ' ' + (date.getDate() + 1)
+        var date = new Date(dateStr.replace(/-/g, ' '))
+        bDay = monthAbbr[date.getMonth()] + ' ' + date.getDate()
       }
 
       return bDay
