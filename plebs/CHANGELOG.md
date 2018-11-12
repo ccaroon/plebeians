@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [1.2.1] - 2018-11-12
+### Changed
+- Renamed the CLI from `directory/directory.py` to `plebs/cli.py`
+
 ## [1.2.0] - 2018-11-05
 ### Added
 - `import vcf` command

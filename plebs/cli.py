@@ -20,7 +20,7 @@ from lib.config import Config
 @click.pass_context
 def cli(ctx):
     """
-    CLI to manager the Plebians data file.
+    CLI to manage the Plebians data file.
     """
     config_file = os.getenv('HOME') + "/.config/plebeians.yml"
     if os.path.isfile(config_file):
