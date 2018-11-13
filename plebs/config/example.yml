@@ -16,8 +16,4 @@ ORG:
         host: ftp.site.org
         username: username
         password: password
-        base_path: top/level/directory/where/everthing/gets/sent/to
-        file_map:
-            # Local Name (Relative to data:path) : Remote Name (Relative to publish:base_path)
-            directory.json: data/directory.json
-            ORG.pdf: /data/ORGDirectory.pdf
+        remote_path: top/level/directory/where/everthing/gets/sent/to

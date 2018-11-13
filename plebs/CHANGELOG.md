@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [1.3.0] - 2018-11-13
+### Added
+- `publish app` command. Will publish the Web App.
+
+### Changed
+- Factored out FTP code from `commands/publish.py` to `lib/publisher.py`
+- Re-wrote `publish` commands to use `publisher.py`
+- Changed options in config file for "publish" section. Updated `example.yml`
+
+### Fixed
+- `config.py` - Use `os.path.join` in `path()` instead of assuming `/`
+
+### Removed
+- `static/directory.json.example` (Don't feel like maintaining it)
+
 ## [1.2.1] - 2018-11-12
 ### Changed
 - Renamed the CLI from `directory/directory.py` to `plebs/cli.py`

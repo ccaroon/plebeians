@@ -1,68 +1,77 @@
 import click
+import os
 import os.path
-from ftplib import FTP
 
+from lib.publisher import Publisher
 # ------------------------------------------------------------------------------
 @click.group()
 def publish():
-    """ Publish ... """
+    """ Publish Stuff """
     pass
 
 # ------------------------------------------------------------------------------
 @publish.command()
 @click.pass_context
 def data(ctx):
-    """ Publish the data file, directory.json, to an FTP site """
+    """ Publish the data file, directory.json. """
     config = ctx.obj['config']
-    __upload_file(config, 'directory.json', 'txt')
+
+    local_file = config.path('data:path', 'directory.json')
+    remote_file = config.path('publisher:remote_path', 'static/%s/directory.json' % (config.org.lower()))
+
+    with Publisher(config.get('publisher')) as publish:
+        publish.file(local_file, remote_file)
+    
+    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
 
 # ------------------------------------------------------------------------------
 @publish.command()
 @click.pass_context
 def pdf(ctx):
-    """ Publish the PDF version to an FTP site """
+    """ Publish the PDF version. """
     config = ctx.obj['config']
-    __upload_file(config, "%s.pdf" % (config.org), 'bin')
+
+    local_file = config.path('data:path', '%s.pdf' % (config.org))
+    remote_file = config.path('publisher:remote_path', 'MemberDirectory.pdf')
+
+    with Publisher(config.get('publisher')) as publish:
+        publish.file(local_file, remote_file, binmode=True)
+    
+    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
 
 # ------------------------------------------------------------------------------
 @publish.command()
 @click.argument('photo')
 @click.pass_context
 def photo(ctx, photo):
-    """ Publish a photo to an FTP site """
+    """ Publish a photo. """
     config = ctx.obj['config']
-    __upload_file(config, "photos/%s" % (photo), 'bin', remote='photo_path')
+
+    local_file = config.path('data:path', "photos/%s" % (photo))
+    remote_file = config.path('publisher:remote_path', 'static/%s/photos/%s' % (config.org.lower(), photo))
+
+    with Publisher(config.get('publisher')) as publish:
+        publish.file(local_file, remote_file)
+    
+    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
 
 # ------------------------------------------------------------------------------
-# file_type: txt | bin
-def __upload_file(config, file_name, file_type, **kwargs):
-    host = config.get('publish:host')
-    user = config.get('publish:username')
-    passwd = config.get('publish:password')
+@publish.command()
+@click.pass_context
+def app(ctx):
+    """ Publish the Plebeians Web App. """
+    config = ctx.obj['config']
 
-    local_file = config.path('data:path', file_name)
-
-    if not os.path.exists(local_file):
-        raise Exception("Local file does not exist: '%s" % (local_file))
-
-    if kwargs.get('remote'):
-        remote = config.path('publish:base_path', 'publish:file_map:%s' % (kwargs.get('remote')), file_name)
-    else:
-        remote = config.path('publish:base_path', 'publish:file_map:%s' % (file_name))
+    # Organization data will NOT be published.
+    org_path = "static/%s" % (config.org.lower())
     
-    remote_file = os.path.basename(remote)
-    remote_path = os.path.dirname(remote)
+    local_base_path = os.path.dirname(os.path.realpath(__file__+'../../..'))
+    local_base_path += "/dist"
 
-    ftp = FTP(host, user, passwd)
-    ftp.cwd(remote_path)
+    remote_base_path = config.get('publisher:remote_path')
 
-    if file_type == 'txt':
-        with open(local_file, "r") as fp:
-            ftp.storlines('STOR %s' % (remote_file), fp)
-    elif file_type == 'bin':
-        with open(local_file, "rb") as fp:
-            ftp.storbinary('STOR %s' % (remote_file), fp)
+    count = 0
+    with Publisher(config.get('publisher')) as publish:
+        count = publish.directory(local_base_path, remote_base_path, [org_path])
     
-    ftp.quit()
-
-    print "Successfully published '%s' to %s/%s/%s" % (local_file, host, remote_path, remote_file)
+    print "Successfully published %d files from '%s' to '%s'" % (count, local_base_path, remote_base_path)

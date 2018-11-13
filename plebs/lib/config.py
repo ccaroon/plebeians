@@ -26,9 +26,7 @@ class Config:
         for p in parts:
             data.append(self.get(p, p))
     
-        # join into a path
-        path = '/'.join(data)
-        
+        path = os.path.join(*data)
         return os.path.expanduser(path)
 
     def __read_config(self, org_name):
