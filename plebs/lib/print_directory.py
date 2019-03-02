@@ -7,7 +7,7 @@ import json
 import os.path as path
 import sys
 
-from directory import Directory
+from lib.directory import Directory
 
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import letter, landscape
@@ -123,8 +123,8 @@ class PrintDirectory:
                 pos_x += 5.5*inch
 
             info = self.__pdf.beginText(pos_x, pos_y)
-            info.textLine("-- %s --" % (datetime(1900,num,01).strftime("%B").upper()))
-            for day,names in month.iteritems():
+            info.textLine("-- %s --" % (datetime(1900,num,1).strftime("%B").upper()))
+            for day,names in month.items():
                 for n in names:
                     info.textLine("%02d) %s" % (day,n))
 
@@ -147,10 +147,10 @@ class PrintDirectory:
             family1 = families[family_index]
             family_index += 1
             family1_args = {}
-            family1_side = side_it.next()
+            family1_side = next(side_it)
 
             family2_args = {}
-            family2_side = side_it.next()
+            family2_side = next(side_it)
             if len(family1.members()) > PrintDirectory.MAX_MEMBERS_PER_SIDE:
                 family1_args = {
                     'm_start': 0,
@@ -255,7 +255,7 @@ class PrintDirectory:
 
             # Phones
             if person.phone:
-                for type, number in person.phone.iteritems():
+                for type, number in person.phone.items():
                     info.textLine("%s: %s" % (type.capitalize(), number))
 
             # Relationships

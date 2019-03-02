@@ -5,7 +5,7 @@ class Prompt:
 
     @classmethod
     def input(cls, msg):
-        value = raw_input(msg)
+        value = input(msg)
         return (value)
 
     # --------------------------------------------------------------------------
@@ -14,7 +14,7 @@ class Prompt:
         new_data = []
         add_more = True
         while add_more:
-            print "----- Add Note -----"
+            print("----- Add Note -----")
             title = Prompt.input("Note Title: ")
             text  = Prompt.input("Note Text: ")
 
@@ -33,7 +33,7 @@ class Prompt:
         new_data = {}
         add_more = True
         while add_more:
-            print "----- Add Phone -----"
+            print("----- Add Phone -----")
             phone_type = Prompt.input("Phone Type: ")
             phone_num = Prompt.input("Phone Number: ")
 
@@ -56,7 +56,7 @@ class Prompt:
         new_data = []
         add_more = True
         while add_more:
-            print "----- Add Relationship -----"
+            print("----- Add Relationship -----")
             rel_type = Prompt.input("Relation Type: ")
             rel_name = Prompt.input("Relation Name: ")
 
@@ -84,7 +84,7 @@ class Prompt:
         if isinstance(object_list, (list, tuple)):
             num = 1
             for obj in object_list:
-                print "%d) %s" % (num, obj)
+                print("%d) %s" % (num, obj))
                 num += 1
 
             choice = Prompt.input(msg)

@@ -1,5 +1,4 @@
 import json
-import md5
 
 from lib.person import Person
 # ------------------------------------------------------------------------------

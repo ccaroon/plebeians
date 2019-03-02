@@ -64,10 +64,10 @@ class Directory:
             members = fam.members()
             mem_count = len(members)
             total_peeps += mem_count
-            print "%s -> %d" % (fam.name, mem_count)
+            print("%s -> %d" % (fam.name, mem_count))
 
-        print "---------------------------------"
-        print "Families: %d | Total Members: %d" % (fam_count, total_peeps)
+        print("---------------------------------")
+        print("Families: %d | Total Members: %d" % (fam_count, total_peeps))
 
     def save(self, use_version=True):
         output_file = self.__data_file

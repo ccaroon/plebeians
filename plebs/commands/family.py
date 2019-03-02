@@ -21,7 +21,7 @@ def view(ctx, name):
 
     family = Prompt.choose_from_list(family, "Which Family? ")
 
-    print repr(family)
+    print(repr(family))
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
@@ -35,8 +35,7 @@ def edit(ctx, name):
 
     need_to_save = False
     fam_data = family.to_json()
-    fields = fam_data.keys()
-    fields.sort()
+    fields = sorted(fam_data.keys())
     for name in fields:
         if name in ('id', 'name', 'members'):
             continue
@@ -92,7 +91,7 @@ def edit_member(ctx, name, family_name):
         if need_to_save:
             directory.save()
     else:
-        print "Member not found: '%s'" % (name)
+        print("Member not found: '%s'" % (name))
 
 # ------------------------------------------------------------------------------
 @family.command()
@@ -105,7 +104,7 @@ def add(ctx, name):
     family_data = Family(name=name).to_json()
     fields = family_data.keys()
     fields.sort()
-    print "----- Adding the '%s' Family -----" % (family_data['name'])
+    print("----- Adding the '%s' Family -----" % (family_data['name']))
     for name in fields:
         if name in ('id', 'name', 'members'):
             continue
@@ -114,7 +113,7 @@ def add(ctx, name):
         family_data[name] = new_value if new_value else ""
 
     new_family = Family(**family_data)
-    print new_family
+    print(new_family)
     directory.add(new_family)
 
     add_members = True
@@ -122,7 +121,7 @@ def add(ctx, name):
     fields = template.keys()
     fields.sort()
     while add_members:
-        print "----- Add Family Member -----"
+        print("----- Add Family Member -----")
         member_data = template.copy()
         for name in fields:
             if name in ('photo'):
@@ -162,7 +161,7 @@ def delete(ctx, name):
         directory.delete(family)
         directory.save()
     else:
-        print "Not Deleting Family: %s - %s" % (family.name, family.address)
+        print("Not Deleting Family: %s - %s" % (family.name, family.address))
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
@@ -179,9 +178,9 @@ def del_member(ctx, name, family_name):
         directory.delete_photo(person)
 
         directory.save()
-        print "'%s' successfully deleted." % (name)
+        print("'%s' successfully deleted." % (name))
     else:
-        print "Member not found: '%s'" % (name)
+        print("Member not found: '%s'" % (name))
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("thing")
@@ -213,8 +212,10 @@ def fix(ctx, thing):
         directory.save()
     elif thing == "directory_to_list":
         directory.save()
+    elif thing == "format":
+        directory.save()
     else:
-        print "I'm sorry Dave, I'm afraid I can't fix %s!" % (thing)
+        print("I'm sorry Dave, I'm afraid I can't fix %s!" % (thing))
 # ------------------------------------------------------------------------------
 def __find_member(directory, name, family_name=None):
     person = None

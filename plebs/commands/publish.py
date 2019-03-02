@@ -21,8 +21,8 @@ def data(ctx):
 
     with Publisher(config.get('publisher')) as publish:
         publish.file(local_file, remote_file)
-    
-    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
+
+    print("Successfully published '%s' to '%s'" % (local_file, remote_file))
 
 # ------------------------------------------------------------------------------
 @publish.command()
@@ -36,8 +36,8 @@ def pdf(ctx):
 
     with Publisher(config.get('publisher')) as publish:
         publish.file(local_file, remote_file, binmode=True)
-    
-    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
+
+    print("Successfully published '%s' to '%s'" % (local_file, remote_file))
 
 # ------------------------------------------------------------------------------
 @publish.command()
@@ -52,8 +52,8 @@ def photo(ctx, photo):
 
     with Publisher(config.get('publisher')) as publish:
         publish.file(local_file, remote_file)
-    
-    print "Successfully published '%s' to '%s'" % (local_file, remote_file)
+
+    print("Successfully published '%s' to '%s'" % (local_file, remote_file))
 
 # ------------------------------------------------------------------------------
 @publish.command()
@@ -64,7 +64,7 @@ def app(ctx):
 
     # Organization data will NOT be published.
     org_path = "static/%s" % (config.org.lower())
-    
+
     local_base_path = os.path.dirname(os.path.realpath(__file__+'../../..'))
     local_base_path += "/dist"
 
@@ -73,5 +73,5 @@ def app(ctx):
     count = 0
     with Publisher(config.get('publisher')) as publish:
         count = publish.directory(local_base_path, remote_base_path, [org_path])
-    
-    print "Successfully published %d files from '%s' to '%s'" % (count, local_base_path, remote_base_path)
+
+    print("Successfully published %d files from '%s' to '%s'" % (count, local_base_path, remote_base_path))

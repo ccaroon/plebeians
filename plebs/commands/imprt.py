@@ -24,14 +24,14 @@ def vcf(ctx, vcf_file):
     vcf = VCFParser(photo_dir=config.path('data:path', 'photos'))
     data = vcf.parse(vcf_file)
 
-    print "----- %s - %s -----" % (data['last_name'], data['address'])
+    print("----- %s - %s -----" % (data['last_name'], data['address']))
 
     family = directory.get(data['last_name'])
     family = Prompt.choose_from_list(family, "Which Family")
     if family:
         person = family.get(data['name'])
         if person:
-            print "%s already exists." % (data['name'])
+            print("%s already exists." % (data['name']))
         else:
             new_person = Person(**data)
             family.add(new_person)
@@ -53,4 +53,4 @@ def vcf(ctx, vcf_file):
 
 
 
-# 
+#

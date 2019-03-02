@@ -24,7 +24,7 @@ class Person(object):
 
     @birthday.setter
     def birthday(self, bday):
-        if isinstance(bday, (str, unicode)):
+        if isinstance(bday, (str)):
             self.__birthday = datetime.strptime(bday, Person.BDAY_FORMAT)
         elif isinstance(bday, datetime):
             self.__birthday = bday

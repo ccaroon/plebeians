@@ -19,16 +19,15 @@ class Publisher:
 
     def file(self, local_file, remote_file, **kwargs):
         is_bin = kwargs.get('binmode', self.is_binary(local_file))
-        
+
         if not os.path.exists(local_file):
             raise Exception("Local file does not exist: '%s" % (local_file))
 
+        cmd = 'STOR %s' % (remote_file)
         if is_bin:
-            with open(local_file, "rb") as fp:
-                self.__ftp.storbinary('STOR %s' % (remote_file), fp)
+            self.__ftp.storbinary(cmd, open(local_file, "rb"))
         else:
-            with open(local_file, "r") as fp:
-                self.__ftp.storlines('STOR %s' % (remote_file), fp)
+            self.__ftp.storlines(cmd, open(local_file, "rb"))
 
     # -------------------------------------------------------------
     # local_path: Publish all files in this directory
@@ -44,7 +43,7 @@ class Publisher:
                 if root.startswith(full_ignore_path):
                     skip = True
                     break
-            
+
             if skip:
                 continue
 
@@ -53,10 +52,10 @@ class Publisher:
                 remote_file = local_file.replace(local_path, remote_path)
 
                 count += 1
-                print "%03d - %s" % (count, remote_file)
+                print("%03d - %s" % (count, remote_file))
 
                 self.file(local_file, remote_file, binmode=True)
-        
+
         return (count)
 
     def is_binary(self, file):

@@ -1,3 +1,4 @@
 # Dependencies
-click ~= 6.7
+click ~= 7.0
 reportlab ~= 3.5.9
+pyaml

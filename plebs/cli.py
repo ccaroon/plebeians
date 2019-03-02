@@ -29,7 +29,7 @@ def cli(ctx):
             'config': config
         }
     else:
-        print "Config file '%s' missing." % (config_file)
+        print("Config file '%s' missing." % (config_file))
         sys.exit(1)
 
 # ------------------------------------------------------------------------------

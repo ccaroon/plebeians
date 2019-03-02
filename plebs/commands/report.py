@@ -37,12 +37,12 @@ def photos(ctx):
                 if size[0] < 300 or size[1] < 300:
                     too_small.append(member.name)
 
-    print "----- Missing Photo -----"
+    print("----- Missing Photo -----")
     for name in missing:
-        print name
+        print(name)
 
-    print "\n"
+    print("\n")
 
-    print "----- Photo Too Small -----"
+    print("----- Photo Too Small -----")
     for name in too_small:
-        print name
+        print(name)
