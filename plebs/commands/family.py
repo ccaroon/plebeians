@@ -67,8 +67,7 @@ def edit_member(ctx, name, family_name):
     if person:
         need_to_save = False
         person_data = person.to_json()
-        fields = person_data.keys()
-        fields.sort()
+        fields = sorted(person_data.keys())
         for field in fields:
             if field in ('name', 'photo'):
                 continue
@@ -102,8 +101,7 @@ def add(ctx, name):
     directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
 
     family_data = Family(name=name).to_json()
-    fields = family_data.keys()
-    fields.sort()
+    fields = sorted(family_data.keys())
     print("----- Adding the '%s' Family -----" % (family_data['name']))
     for name in fields:
         if name in ('id', 'name', 'members'):
@@ -118,8 +116,7 @@ def add(ctx, name):
 
     add_members = True
     template = Person().to_json()
-    fields = template.keys()
-    fields.sort()
+    fields = sorted(template.keys())
     while add_members:
         print("----- Add Family Member -----")
         member_data = template.copy()
