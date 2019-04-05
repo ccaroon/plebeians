@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [1.4.0] - 2019-04-05
+### Added
+- `--bdays` flag added to `export pdf` command. Creates a PDF with ONLY the birthday page.
+- `publish pdf` now published the birthday page too.
+
+### Changed
+- BDay Page
+    - Month names are now bolded
+    - Use `~~~` around month names instead of dashes. Prettier. ;)
+
+### Fixed
+- Sort order of names on the birthday page was random. Fixed each month to order each members name by bday day.
+- Added ability to adjust month placement on Bday page so that any month list does not overlap another.
+  - Adjusted October. It was too close to December.
+
 ## [1.3.0] - 2018-11-13
 ### Added
 - `publish app` command. Will publish the Web App.
