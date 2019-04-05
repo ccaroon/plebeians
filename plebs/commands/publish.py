@@ -31,13 +31,18 @@ def pdf(ctx):
     """ Publish the PDF version. """
     config = ctx.obj['config']
 
-    local_file = config.path('data:path', '%s.pdf' % (config.org))
-    remote_file = config.path('publisher:remote_path', 'MemberDirectory.pdf')
+    dir_local_file = config.path('data:path', '%s.pdf' % (config.org))
+    dir_remote_file = config.path('publisher:remote_path', 'MemberDirectory.pdf')
+
+    bdays_local_file = config.path('data:path', '%s-BDays.pdf' % (config.org))
+    bdays_remote_file = config.path('publisher:remote_path', 'Birthdays.pdf')
 
     with Publisher(config.get('publisher')) as publish:
-        publish.file(local_file, remote_file, binmode=True)
+        publish.file(dir_local_file, dir_remote_file, binmode=True)
+        print("Successfully published '%s' to '%s'" % (dir_local_file, dir_remote_file))
 
-    print("Successfully published '%s' to '%s'" % (local_file, remote_file))
+        publish.file(bdays_local_file, bdays_remote_file, binmode=True)
+        print("Successfully published '%s' to '%s'" % (bdays_local_file, bdays_remote_file))
 
 # ------------------------------------------------------------------------------
 @publish.command()

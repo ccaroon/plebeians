@@ -31,12 +31,13 @@ class PrintDirectory:
         # Read Directory Data
         self.__directory = Directory("%s/directory.json" % (data_path))
 
-    def render(self):
-        self.render_title()
-
-        self.render_bdays()
-
-        self.render_families()
+    def render(self, **kwargs):
+        if kwargs.get("bdays_only", False):
+            self.render_bdays()
+        else:
+            self.render_title()
+            self.render_bdays()
+            self.render_families()
 
         # Save PDF
         self.__pdf.save()
@@ -70,6 +71,8 @@ class PrintDirectory:
         self.__pdf.showPage()
 
     def render_bdays(self):
+        # Month placement adjustment
+        placement = [0, 0, 0, 0, 0, 0, 0, 0, 0, .15*inch, 0, 0]
         bdays = [{},{},{},{},{},{},{},{},{},{},{},{},{}]
 
         for family in self.__directory.families():
@@ -98,7 +101,6 @@ class PrintDirectory:
         height = 2.5*inch
         row = 1
 
-        self.__pdf.setFont(PrintDirectory.FONT, 9)
         for num, month in enumerate(bdays):
             if not month:
                 continue
@@ -107,7 +109,7 @@ class PrintDirectory:
                 # ODD
                 offset = row - 1
                 pos_x = origin_x
-                pos_y = origin_y - (offset*height)
+                pos_y = (origin_y - (offset*height)) + placement[num-1]
                 # print "ODD - %d] x:%d y:%d" % (num, pos_x,pos_y)
             else:
                 # EVEN
@@ -116,15 +118,21 @@ class PrintDirectory:
                 if row > 3:
                     row = 1
                 pos_x = origin_x + width
-                pos_y = origin_y - (offset*height)
+                pos_y = (origin_y - (offset*height)) + placement[num-1]
                 # print "EVEN - %d] x:%d y:%d" % (num, pos_x,pos_y)
 
             if num > 6:
                 pos_x += 5.5*inch
 
-            info = self.__pdf.beginText(pos_x, pos_y)
-            info.textLine("-- %s --" % (datetime(1900,num,1).strftime("%B").upper()))
-            for day,names in month.items():
+            self.__pdf.setFont(PrintDirectory.FONT_BOLD, 9)
+            header = self.__pdf.beginText(pos_x, pos_y)
+            header.textLine("~~~ %s ~~~" % (datetime(1900,num,1).strftime("%B").upper()))
+            self.__pdf.drawText(header)
+
+            self.__pdf.setFont(PrintDirectory.FONT, 9)
+            info = self.__pdf.beginText(pos_x, pos_y - 0.15*inch)
+            for day in sorted(month.keys()):
+                names = month.get(day)
                 for n in names:
                     info.textLine("%02d) %s" % (day,n))
 
