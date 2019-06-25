@@ -56,6 +56,19 @@ def edit(ctx, name):
 # ------------------------------------------------------------------------------
 @family.command()
 @click.argument("name")
+@click.pass_context
+def add_member(ctx, name):
+    """ Add a Family Member """
+    directory = Directory(ctx.obj['config'].path('data:path', 'directory.json'))
+
+    family = directory.get(name)
+    __add_members(family)
+
+    directory.save()
+
+# ------------------------------------------------------------------------------
+@family.command()
+@click.argument("name")
 @click.option("--family-name", "-f", help="Specify Family Name")
 @click.pass_context
 def edit_member(ctx, name, family_name):
@@ -114,33 +127,8 @@ def add(ctx, name):
     print(new_family)
     directory.add(new_family)
 
-    add_members = True
-    template = Person().to_json()
-    fields = sorted(template.keys())
-    while add_members:
-        print("----- Add Family Member -----")
-        member_data = template.copy()
-        for name in fields:
-            if name in ('photo'):
-                continue
+    __add_members(new_family)
 
-            if name == 'relationships':
-                member_data['relationships'] = Prompt.relationships()
-            elif name == 'phone':
-                member_data['phone'] = Prompt.phone()
-            else:
-                new_value = Prompt.input("%s: " % (name))
-                member_data[name] = new_value if new_value else ""
-
-        member_data['birthday'] = Prompt.input("birthday (YYYY-MM-DD)? ")
-        member_data['photo'] = re.sub('\W','-', member_data['name'].lower()) + ".jpeg"
-
-        new_member = Person(**member_data)
-        new_family.add(new_member)
-
-        add_members = Prompt.more(msg="Add More Members")
-
-    # print new_family
     directory.save()
 # ------------------------------------------------------------------------------
 @family.command()
@@ -232,3 +220,30 @@ def __find_member(directory, name, family_name=None):
         person = family.get(name)
 
     return (family, person)
+# ------------------------------------------------------------------------------
+def __add_members(family):
+    add_members = True
+    template = Person().to_json()
+    fields = sorted(template.keys())
+    while add_members:
+        print("----- Add Family Member -----")
+        member_data = template.copy()
+        for name in fields:
+            if name in ('photo'):
+                continue
+
+            if name == 'relationships':
+                member_data['relationships'] = Prompt.relationships()
+            elif name == 'phone':
+                member_data['phone'] = Prompt.phone()
+            else:
+                new_value = Prompt.input("%s: " % (name))
+                member_data[name] = new_value if new_value else ""
+
+        member_data['birthday'] = Prompt.input("birthday (YYYY-MM-DD)? ")
+        member_data['photo'] = re.sub('\W','-', member_data['name'].lower()) + ".jpeg"
+
+        new_member = Person(**member_data)
+        family.add(new_member)
+
+        add_members = Prompt.more(msg="Add More Members")
