@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [1.5.0] - 2019-07-28
+### Added
+- Export to Text file
+
 ## [1.4.0] - 2019-04-05
 ### Added
 - `--bdays` flag added to `export pdf` command. Creates a PDF with ONLY the birthday page.
@@ -42,7 +46,7 @@
 
 ## [1.1.0] - 2018-10-31
 ### Fixed
-- Saving `directory.json` no longer adds a space after each comma 
+- Saving `directory.json` no longer adds a space after each comma
 
 ### Added
 - `publish` command

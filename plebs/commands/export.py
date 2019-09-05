@@ -1,5 +1,6 @@
 import click
 
+from lib.exporter import Exporter
 from lib.print_directory import PrintDirectory
 # ------------------------------------------------------------------------------
 @click.group()
@@ -20,3 +21,13 @@ def pdf(ctx, bdays):
 
     pdir = PrintDirectory(config.path('data:path'), output_filename)
     pdir.render(bdays_only=bdays)
+
+# ------------------------------------------------------------------------------
+@export.command()
+@click.pass_context
+def txt(ctx):
+    """Export Directory Data to a Text file"""
+    config = ctx.obj['config']
+
+    exporter = Exporter(config.path('data:path'))
+    exporter.export_markdown(config.org)
