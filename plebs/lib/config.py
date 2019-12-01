@@ -5,7 +5,7 @@ class Config:
     def __init__(self, org_name, file_path):
         self.org = org_name
         self.__file_path = file_path
-        
+
         self.__data = {}
         self.__read_config(org_name)
 
@@ -25,14 +25,14 @@ class Config:
         # resolve each config setting name
         for p in parts:
             data.append(self.get(p, p))
-    
+
         path = os.path.join(*data)
         return os.path.expanduser(path)
 
     def __read_config(self, org_name):
         config_data = {}
         with open(self.__file_path, "r") as fh:
-            config_data = yaml.load(fh)
+            config_data = yaml.full_load(fh)
 
         if org_name:
             self.__data = config_data.get(org_name)

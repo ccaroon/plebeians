@@ -27,6 +27,21 @@ def data(ctx):
 # ------------------------------------------------------------------------------
 @publish.command()
 @click.pass_context
+def txt(ctx):
+    """ Publish the text version."""
+    config = ctx.obj['config']
+
+    local_file = config.path('data:path', 'MCUMC.md')
+    remote_file = config.path('publisher:remote_path', 'MemberDirectory.txt')
+
+    with Publisher(config.get('publisher')) as publish:
+        publish.file(local_file, remote_file)
+
+    print("Successfully published '%s' to '%s'" % (local_file, remote_file))
+
+# ------------------------------------------------------------------------------
+@publish.command()
+@click.pass_context
 def pdf(ctx):
     """ Publish the PDF version. """
     config = ctx.obj['config']

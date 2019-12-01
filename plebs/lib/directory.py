@@ -91,7 +91,10 @@ class Directory:
 
             src_file = "%s/photos/%s" % (data_dir, person.photo)
             dest_file = "%s/backup/%s" % (data_dir, person.photo)
-            os.rename(src_file, dest_file)
+            try:
+                os.rename(src_file, dest_file)
+            except Exception as e:
+                print(F"Error Moving Photo: {e}")
 
     def delete(self, family):
         for person in family.members():
